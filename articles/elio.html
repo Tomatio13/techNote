@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>elioとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">開発環境 / TUI</p>
+      <h1>elioとは何か</h1>
+      <p class="article-date">作成日: 2026年6月15日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>elio は、プレビュー重視のターミナル向けファイルマネージャです。</li>
+          <li>3ペイン構成、inline image、Trash、bulk rename、zoxide 連携などを最初からまとめて持つのが特徴です。</li>
+          <li>ただの「ls を見やすくした TUI」ではなく、ファイル閲覧、移動、プレビュー、シェル復帰までを一続きで扱う道具として設計されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何をするツールか</h2>
+        <p>elio は、端末の中でファイル操作を完結しやすくするための terminal file manager です。README では three-pane layout、rich previews、inline images、bulk actions、trash support を前面に出しています。狙いは「ターミナルのまま高速に見て、選んで、移動して、必要なら外部アプリで開く」ことです。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 260" role="img" aria-label="elioの3ペイン構造">
+            <rect x="20" y="40" width="180" height="170" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="110" y="86" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">Places</text>
+            <text x="110" y="122" text-anchor="middle" font-size="20" fill="#7c2d12">Home</text>
+            <text x="110" y="148" text-anchor="middle" font-size="20" fill="#7c2d12">Downloads</text>
+            <text x="110" y="174" text-anchor="middle" font-size="20" fill="#7c2d12">Trash</text>
+
+            <rect x="235" y="40" width="250" height="170" rx="22" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="360" y="86" text-anchor="middle" font-size="28" font-weight="700" fill="#a16207">Files</text>
+            <text x="360" y="122" text-anchor="middle" font-size="20" fill="#854d0e">list / grid</text>
+            <text x="360" y="148" text-anchor="middle" font-size="20" fill="#854d0e">fuzzy search</text>
+            <text x="360" y="174" text-anchor="middle" font-size="20" fill="#854d0e">select / rename</text>
+
+            <rect x="520" y="40" width="380" height="170" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="710" y="86" text-anchor="middle" font-size="28" font-weight="700" fill="#1d4ed8">Preview</text>
+            <text x="710" y="122" text-anchor="middle" font-size="20" fill="#1e40af">text / PDF / archive</text>
+            <text x="710" y="148" text-anchor="middle" font-size="20" fill="#1e40af">audio / video metadata</text>
+            <text x="710" y="174" text-anchor="middle" font-size="20" fill="#1e40af">inline image</text>
+          </svg>
+          <figcaption class="diagram-caption">Places、Files、Preview の3ペインを同時に並べ、移動しながら中身を確認する設計です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>どこが便利か</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>プレビューが広い</h3>
+            <p>テキストだけでなく PDF、Office、archive、media metadata まで preview pane で見られます。</p>
+          </div>
+          <div class="mini-card">
+            <h3>画像を端末内で見やすい</h3>
+            <p>Kitty Graphics、iTerm2 Inline、Sixel などに応じて inline image を自動判定します。</p>
+          </div>
+          <div class="mini-card">
+            <h3>終了後の移動が自然</h3>
+            <p><code>elio shell install</code> を入れると、終了時にそのディレクトリへ shell を移せます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>何ができるか</h2>
+        <ul>
+          <li>fuzzy search で folder、file をすばやく探す</li>
+          <li><code>z</code> で zoxide 履歴から頻出ディレクトリへ飛ぶ</li>
+          <li><code>d</code> で Trash、<code>D</code> で完全削除、Trash 内では <code>r</code> で restore</li>
+          <li><code>r</code> / <code>F2</code> で rename や bulk rename</li>
+          <li><code>v</code> で grid / list を切り替える</li>
+          <li><code>O</code> で Open With、<code>c</code> で path を clipboard へコピーする</li>
+        </ul>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 180" role="img" aria-label="elioの作業フロー">
+            <rect x="20" y="55" width="170" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">探す</text>
+            <path d="M190 90 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,90 242,80 242,100" fill="#9ca3af"/>
+
+            <rect x="260" y="55" width="170" height="70" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="345" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">中身を見る</text>
+            <path d="M430 90 H500" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="500,90 482,80 482,100" fill="#9ca3af"/>
+
+            <rect x="500" y="55" width="170" height="70" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="585" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">操作する</text>
+            <path d="M670 90 H740" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="740,90 722,80 722,100" fill="#9ca3af"/>
+
+            <rect x="740" y="55" width="160" height="70" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="820" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">shellへ戻る</text>
+          </svg>
+          <figcaption class="diagram-caption">検索、プレビュー、操作、シェル復帰までを1本の流れに寄せているのが elio の使いどころです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>プレビューの強み</h2>
+        <p>README によると、preview pane では text、source code、Markdown、JSON、YAML、TOML、CSV、SQLite に加え、PDF、ebook、Office、OpenDocument、Apple Pages、images、audio、video metadata、archives、ISO などまで扱います。より豊かな preview には Poppler、FFmpeg、resvg、7-Zip、unar、FontForge などの追加ツールが使われます。</p>
+        <div class="compare-box">
+          <p>そのままでは軽量に動き、必要なら補助ツールを足して preview coverage を広げる設計です。重い依存を最初から全部抱え込まないのは実務的です。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>インライン画像対応</h2>
+        <ul>
+          <li>Kitty、Ghostty、Warp、WezTerm、iTerm2、Konsole、foot、Windows Terminal を自動判定対象として案内しています。</li>
+          <li>未認識でも Kitty Graphics Protocol 対応端末なら <code>ELIO_IMAGE_PREVIEWS=1</code> で強制有効化できます。</li>
+          <li>Sixel 系は Kitty Graphics や iTerm2 Inline より初回表示や大きい画像で遅くなることがある、と README で注意されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>導入方法</h2>
+        <ul>
+          <li>Arch Linux: <code>paru -S elio</code></li>
+          <li>Fedora: COPR を有効化して <code>sudo dnf install elio</code></li>
+          <li>Debian / Ubuntu: 公式 apt repository を追加して <code>sudo apt install elio</code></li>
+          <li>Homebrew: <code>brew install elio</code></li>
+          <li>Cargo: <code>cargo install elio</code></li>
+        </ul>
+        <p>Richer preview 用の補助ツールとして、Poppler、FFmpeg、resvg、7-Zip も案内されています。README と install ページの両方で、Nerd Font の利用も推奨されています。</p>
+      </section>
+
+      <section>
+        <h2>向いている人</h2>
+        <ul>
+          <li>ターミナル中心で作業しつつ、GUI ファイラ並みの preview を欲しい人</li>
+          <li><code>nnn</code> や <code>ranger</code> より、最初から画像、Trash、rename、clipboard を一式ほしい人</li>
+          <li>シェルをまたいだディレクトリ移動や zoxide 連携を自然に使いたい人</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2026年6月15日時点の公開状況</h2>
+        <ul>
+          <li>GitHub Releases の latest は <code>v1.8.0</code> です。</li>
+          <li>latest release ページ上の公開日時は 2026年6月6日 12:19 と表示されています。</li>
+          <li><code>v1.8.0</code> では configurable key bindings の拡張、<code>restore_from_trash</code>、<code>D</code> による permanent delete などが追加されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>elio は、「端末内ファイラだが preview を妥協しない」方向の実装です。3ペイン、画像、Trash、shell integration まで一通りそろっているので、CLI 派が GUI ファイラに戻る理由を減らすタイプのツールと言えます。逆に、最小機能の軽さだけを求めるなら過剰ですが、日常のファイル操作を端末中心にまとめたいならかなり完成度が高いです。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/elio-fm/elio">elio-fm/elio GitHub repository</a></li>
+          <li><a href="https://github.com/elio-fm/elio/releases/latest">Latest release</a></li>
+          <li><a href="https://elio-fm.github.io/install/">Install elio</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entire CLIとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / 開発履歴</p>
+      <h1>Entire CLIとは何か</h1>
+      <p class="article-date">作成日: 2026年6月15日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>Entire CLI は、AI エージェントとの作業セッションを Git ワークフローにひも付けて保存するための CLI です。</li>
+          <li>コード本体のコミット履歴は汚さず、会話ログやチェックポイントは `entire/checkpoints/v1` という別ブランチに保存します。</li>
+          <li>便利さの裏返しとして、公開リポジトリでは会話ログも公開されるので、導入時は保管場所と redaction の限界を理解して使う必要があります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何をするツールか</h2>
+        <p>Entire CLI は、Claude Code、Codex、Gemini、Cursor などの AI エージェントでコードを書いたときのやり取りを、あとから追跡できる形で Git に結び付けるツールです。README では「コードが何に変わったか」だけでなく、「なぜその変更になったか」を prompt、response、files touched、tool calls と一緒に残せることを前面に出しています。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 240" role="img" aria-label="Entire CLIの基本構造">
+            <rect x="20" y="50" width="220" height="130" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="130" y="94" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">作業ブランチ</text>
+            <text x="130" y="128" text-anchor="middle" font-size="20" fill="#7c2d12">通常のコード変更</text>
+            <text x="130" y="154" text-anchor="middle" font-size="20" fill="#7c2d12">通常の git commit</text>
+
+            <path d="M240 114 H355" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="355,114 337,104 337,124" fill="#9ca3af"/>
+
+            <rect x="355" y="30" width="210" height="170" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="460" y="74" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">Entire CLI</text>
+            <text x="460" y="112" text-anchor="middle" font-size="20" fill="#44403c">git hook</text>
+            <text x="460" y="138" text-anchor="middle" font-size="20" fill="#44403c">checkpoint</text>
+            <text x="460" y="164" text-anchor="middle" font-size="20" fill="#44403c">session restore</text>
+
+            <path d="M565 114 H680" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="680,114 662,104 662,124" fill="#9ca3af"/>
+
+            <rect x="680" y="50" width="220" height="130" rx="22" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="790" y="94" text-anchor="middle" font-size="24" font-weight="700" fill="#0f766e">entire/checkpoints/v1</text>
+            <text x="790" y="128" text-anchor="middle" font-size="20" fill="#115e59">transcript</text>
+            <text x="790" y="154" text-anchor="middle" font-size="20" fill="#115e59">prompt / metadata</text>
+          </svg>
+          <figcaption class="diagram-caption">コード変更は普段のブランチに残しつつ、AI セッションの文脈だけを別ブランチへ逃がす構造です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>どこが特徴か</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>変更理由を残せる</h3>
+            <p>prompt と response を commit に結び付けて、なぜその実装になったかを後から追えます。</p>
+          </div>
+          <div class="mini-card">
+            <h3>Git 履歴を汚しにくい</h3>
+            <p>作業ブランチに Entire 自身の commit を作らず、メタデータは別ブランチへ分離します。</p>
+          </div>
+          <div class="mini-card">
+            <h3>再開しやすい</h3>
+            <p><code>entire session resume</code> で、以前のセッション文脈を戻して続きを始められます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>どう動くか</h2>
+        <p>README にある基本フローはかなり明快です。`entire enable` で git hook と agent hook を入れ、普段どおり AI エージェントで作業し、commit のタイミングで checkpoint と transcript を保存します。必要になれば `entire session resume &lt;branch&gt;` で最新の checkpoint 済み文脈を戻します。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 180" role="img" aria-label="Entire CLIの利用フロー">
+            <rect x="20" y="55" width="170" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">entire enable</text>
+
+            <path d="M190 90 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,90 242,80 242,100" fill="#9ca3af"/>
+
+            <rect x="260" y="55" width="170" height="70" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="345" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">AIで作業</text>
+
+            <path d="M430 90 H500" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="500,90 482,80 482,100" fill="#9ca3af"/>
+
+            <rect x="500" y="55" width="170" height="70" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="585" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">git commit</text>
+
+            <path d="M670 90 H740" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="740,90 722,80 722,100" fill="#9ca3af"/>
+
+            <rect x="740" y="55" width="160" height="70" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="820" y="90" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">resume</text>
+            <text x="820" y="112" text-anchor="middle" font-size="16" fill="#115e59">checkpoint復元</text>
+          </svg>
+          <figcaption class="diagram-caption">導入後は通常の作業フローに寄せたまま、checkpoint と再開機能だけを追加する考え方です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>主なコマンド</h2>
+        <ul>
+          <li><code>entire enable</code>: リポジトリを有効化し、hook を入れる</li>
+          <li><code>entire agent</code>: agent integration を追加、削除、一覧表示する</li>
+          <li><code>entire configure</code>: telemetry、hook、checkpoint remote、summary provider などを設定する</li>
+          <li><code>entire status</code>: 現在のセッション状態を見る</li>
+          <li><code>entire session resume &lt;branch&gt;</code>: 以前の session metadata を戻す</li>
+          <li><code>entire checkpoint explain</code>: session、commit、checkpoint を説明させる</li>
+          <li><code>entire blame</code> / <code>entire why</code>: Labs 扱いの実験機能。行単位で「どの checkpoint が由来か」を追う</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>向いている場面</h2>
+        <ul>
+          <li>AI が書いた変更について、あとで「この差分はどの指示から生まれたか」を説明したいとき</li>
+          <li>複数人、または複数 worktree で AI セッションを並行運用したいとき</li>
+          <li>レビューや監査のために、prompt と commit の結び付きまで保管したいとき</li>
+          <li>壊れたセッションから、以前の checkpoint を起点に復旧したいとき</li>
+        </ul>
+        <div class="compare-box">
+          <p>普通の Git は「何が変わったか」は強いですが、「AI に何を頼んでその変更になったか」は残りません。Entire はこの欠落を埋める方向の CLI です。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>注意点</h2>
+        <p>一番大事なのは保存先です。公式ドキュメントでは transcript、user prompt、checkpoint metadata が同じ Git リポジトリ内の `entire/checkpoints/v1` に保存されると明記されています。公開リポジトリなら、そのデータも公開されます。</p>
+        <ul>
+          <li>秘密情報の redaction は常時有効ですが、best-effort であり、完全保証ではありません。</li>
+          <li>shadow branch にはコードスナップショットが生の blob として載るため、ハードコード済み秘密情報は無加工で入る可能性があります。</li>
+          <li>`.env` のような gitignored file は一部防御になりますが、「AI に渡した内容そのもの」は transcript 側へ残り得ます。</li>
+          <li>公開プロジェクトで使うなら、`--checkpoint-remote github:org/private-repo` のように checkpoint だけ別の private repository へ送る構成が現実的です。</li>
+          <li>安全に使うなら private repository を基本にし、push 前に checkpoint branch を人間が確認する運用が現実的です。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2026年6月15日時点の公開状況</h2>
+        <ul>
+          <li>最新 stable release は <code>v0.7.5</code> で、GitHub Releases 上の公開日は 2026年6月4日です。</li>
+          <li>最新 nightly release は <code>v0.7.6-nightly.202606130727.ef7c706a</code> で、公開日は 2026年6月13日です。</li>
+          <li><code>stable</code> と <code>nightly</code> の2チャネルを案内しており、Homebrew、<code>install.sh</code>、Windows の Scoop、Go install の導線があります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>Entire CLI は、「AI 時代の Git 補助線」を入れるためのツールです。差分だけでは足りない現場で、prompt、response、checkpoint、resume を Git に接続したいならかなり筋がよいです。一方で、会話ログを Git に保存する性質は強いので、便利さより先に保管ポリシーを決めてから入れるべき CLI でもあります。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/entireio/cli">entireio/cli GitHub repository</a></li>
+          <li><a href="https://github.com/entireio/cli/releases">entireio/cli Releases</a></li>
+          <li><a href="https://raw.githubusercontent.com/entireio/cli/main/docs/security-and-privacy.md">Security &amp; Privacy documentation</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

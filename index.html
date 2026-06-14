@@ -16,6 +16,7 @@
         <a href="#web">Web</a>
         <a href="#ai">AI</a>
         <a href="#infra">インフラ</a>
+        <a href="#devtools">開発環境</a>
       </nav>
     </div>
   </header>
@@ -47,6 +48,10 @@
         <span class="section-map-label">インフラ</span>
         <strong>クラウド・認証・配信</strong>
       </a>
+      <a href="#devtools">
+        <span class="section-map-label">開発環境</span>
+        <strong>CLIとTUIの道具</strong>
+      </a>
     </section>
 
     <section class="recent-section" id="recent" aria-labelledby="recent-heading">
@@ -56,6 +61,26 @@
         <p class="section-note">記事を追加すると、ここに新着カードを並べます。</p>
       </div>
       <div class="article-list">
+        <a class="article-card" href="articles/elio.html">
+          <p class="card-meta-row">
+            <time class="article-date" datetime="2026-06-15">2026年6月15日</time>
+            <span class="eyebrow">開発環境 / TUI</span>
+          </p>
+          <h3>elioとは何か</h3>
+          <p>3ペイン、rich preview、inline image、Trash、shell integration を備えた terminal file manager の実体を整理します。</p>
+          <span class="meta">端末ファイラ · 画像対応</span>
+        </a>
+
+        <a class="article-card" href="articles/entire-cli.html">
+          <p class="card-meta-row">
+            <time class="article-date" datetime="2026-06-15">2026年6月15日</time>
+            <span class="eyebrow">AI / 開発履歴</span>
+          </p>
+          <h3>Entire CLIとは何か</h3>
+          <p>AI エージェントとの作業ログを Git に結び付け、checkpoint、resume、監査向けの文脈保存を行う CLI の実体を整理します。</p>
+          <span class="meta">Git連携 · transcript保存</span>
+        </a>
+
         <a class="article-card" href="articles/fff.html">
           <p class="card-meta-row">
             <time class="article-date" datetime="2026-06-14">2026年6月14日</time>
@@ -104,6 +129,14 @@
         <h2 id="ai-heading">モデル、ツール、運用</h2>
       </div>
       <div class="article-row-list">
+        <a class="article-row" href="articles/entire-cli.html">
+          <div class="article-row-main">
+            <span class="article-row-title">Entire CLIとは何か</span>
+            <p class="article-row-desc">AI セッションの transcript と checkpoint を Git に結び付け、resume や traceability を可能にする CLI と、その注意点を整理します。</p>
+          </div>
+          <span class="article-row-meta">AI / 開発履歴</span>
+        </a>
+
         <a class="article-row" href="articles/fff.html">
           <div class="article-row-main">
             <span class="article-row-title">FFFとは何か</span>
@@ -137,6 +170,22 @@
       </div>
       <div class="empty-state">
         <p>インフラカテゴリの記事は未作成です。</p>
+      </div>
+    </section>
+
+    <section class="domain-section" id="devtools" aria-labelledby="devtools-heading">
+      <div class="domain-heading">
+        <p class="eyebrow">開発環境</p>
+        <h2 id="devtools-heading">CLI、TUI、ローカル作業環境</h2>
+      </div>
+      <div class="article-row-list">
+        <a class="article-row" href="articles/elio.html">
+          <div class="article-row-main">
+            <span class="article-row-title">elioとは何か</span>
+            <p class="article-row-desc">プレビュー重視の terminal file manager として、3ペイン構成、画像表示、Trash、shell integration の実体を整理します。</p>
+          </div>
+          <span class="article-row-meta">開発環境 / TUI</span>
+        </a>
       </div>
     </section>
   </main>
