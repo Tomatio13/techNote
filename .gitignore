@@ -1,2 +1,6 @@
 .firecrawl/
 .DS_Store
+.codegraph/
+.codex/
+.agents/
+.github/
