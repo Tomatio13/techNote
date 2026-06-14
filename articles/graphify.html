@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>graphifyとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / ナレッジグラフ</p>
+      <h1>graphifyとは何か</h1>
+      <p class="article-date">作成日: 2026年6月14日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>graphify は、コード、文書、論文、画像、動画などを知識グラフに変換して探索しやすくする CLI と agent skill の組み合わせです。</li>
+          <li>出力は単なるグラフ画像ではなく、`graph.json`、HTML 可視化、`GRAPH_REPORT.md` のような再利用しやすい成果物まで含みます。</li>
+          <li>ローカル調査では、skill ファイルのバージョン表示とインストール済みパッケージ版がずれることがあり、運用時は実際の CLI 実体を確認した方が安全です。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何をするツールか</h2>
+        <p>graphify の中心は、「フォルダ内の情報を関係つきの知識グラフへ変換する」ことです。skill の説明では、コード、docs、papers、images を対象に、community detection まで行い、HTML、JSON、監査向けレポートを出力するとされています。</p>
+        <div class="note-box">
+          <p>単に全文検索するのではなく、ノードとエッジの形にして「何と何がどうつながっているか」を後から辿れるようにするのが主目的です。</p>
+        </div>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 900 220" role="img" aria-label="graphifyの入力から出力までの流れ">
+            <rect x="20" y="55" width="180" height="110" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="110" y="95" text-anchor="middle" font-size="26" font-weight="700" fill="#9a3412">入力</text>
+            <text x="110" y="128" text-anchor="middle" font-size="20" fill="#7c2d12">code / docs</text>
+            <text x="110" y="154" text-anchor="middle" font-size="20" fill="#7c2d12">images / video</text>
+
+            <path d="M200 110 H325" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="325,110 307,100 307,120" fill="#9ca3af"/>
+
+            <rect x="325" y="35" width="240" height="150" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="445" y="78" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">graphify</text>
+            <text x="445" y="110" text-anchor="middle" font-size="20" fill="#44403c">抽出</text>
+            <text x="445" y="136" text-anchor="middle" font-size="20" fill="#44403c">グラフ化</text>
+            <text x="445" y="162" text-anchor="middle" font-size="20" fill="#44403c">クラスタリング</text>
+
+            <path d="M565 110 H690" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="690,110 672,100 672,120" fill="#9ca3af"/>
+
+            <rect x="690" y="30" width="190" height="54" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="785" y="63" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">graph.json</text>
+
+            <rect x="690" y="95" width="190" height="54" rx="18" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="785" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">GRAPH_REPORT.md</text>
+
+            <rect x="690" y="160" width="190" height="54" rx="18" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="785" y="193" text-anchor="middle" font-size="20" font-weight="700" fill="#6d28d9">HTML可視化</text>
+          </svg>
+          <figcaption class="diagram-caption">入力された複数形式の資料を、抽出、グラフ化、クラスタリングして、再利用しやすい成果物へ落とす流れです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>主要な出力</h2>
+        <ul>
+          <li><strong>graphify-out/graph.json</strong>: 永続化されるグラフ本体</li>
+          <li><strong>graphify-out/GRAPH_REPORT.md</strong>: プレーンな説明レポート</li>
+          <li><strong>graph.html や tree 出力</strong>: ブラウザで辿るための可視化</li>
+          <li><strong>query, path, explain</strong>: 既存グラフに対して質問や経路探索を行う操作</li>
+        </ul>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>保存用</h3>
+            <p><code>graph.json</code> がノードとエッジの本体になります。</p>
+          </div>
+          <div class="mini-card">
+            <h3>読む用</h3>
+            <p><code>GRAPH_REPORT.md</code> が全体像の入口になります。</p>
+          </div>
+          <div class="mini-card">
+            <h3>辿る用</h3>
+            <p>HTML 可視化や <code>query</code> 系コマンドで探索します。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>CLI で見える主要コマンド</h2>
+        <ul>
+          <li><code>graphify extract &lt;path&gt;</code>: AST と semantic extraction を含むフル抽出</li>
+          <li><code>graphify update &lt;path&gt;</code>: 変更分の再抽出</li>
+          <li><code>graphify query "..."</code>: グラフを辿って質問に答える</li>
+          <li><code>graphify path "A" "B"</code>: 2ノード間の最短経路を確認する</li>
+          <li><code>graphify explain "X"</code>: ノードの周辺関係を平易に説明する</li>
+          <li><code>graphify watch &lt;path&gt;</code>: 監視しながら更新する</li>
+          <li><code>graphify global add</code>: 複数プロジェクトのグラフを束ねる</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>どういう場面で有効か</h2>
+        <ul>
+          <li>初見のコードベースで、ファイル一覧ではなく関係性から理解したいとき</li>
+          <li>論文、メモ、スクリーンショット、記事などが混ざった調査コーパスを横断したいとき</li>
+          <li>数週間後に同じ資料群へ戻ってきても、再読せずグラフ経由で辿りたいとき</li>
+        </ul>
+        <div class="compare-box">
+          <p>通常の検索は「単語がある場所」を返します。graphify は「概念同士のつながり」を保存するので、あとから BFS や DFS で探索できる点が違います。</p>
+        </div>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 900 260" role="img" aria-label="全文検索とgraphifyの違い">
+            <rect x="30" y="30" width="380" height="190" rx="24" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="220" y="68" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">通常の検索</text>
+            <text x="220" y="108" text-anchor="middle" font-size="20" fill="#7c2d12">キーワード</text>
+            <text x="220" y="136" text-anchor="middle" font-size="20" fill="#7c2d12">↓</text>
+            <text x="220" y="164" text-anchor="middle" font-size="20" fill="#7c2d12">出現箇所の一覧</text>
+            <text x="220" y="192" text-anchor="middle" font-size="20" fill="#7c2d12">「どこにあるか」が中心</text>
+
+            <rect x="490" y="30" width="380" height="190" rx="24" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="680" y="68" text-anchor="middle" font-size="28" font-weight="700" fill="#0f766e">graphify</text>
+            <circle cx="590" cy="135" r="26" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+            <circle cx="680" cy="110" r="26" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+            <circle cx="770" cy="150" r="26" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+            <circle cx="675" cy="185" r="26" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+            <line x1="616" y1="129" x2="654" y2="116" stroke="#0f766e" stroke-width="3"/>
+            <line x1="704" y1="121" x2="746" y2="142" stroke="#0f766e" stroke-width="3"/>
+            <line x1="748" y1="165" x2="698" y2="178" stroke="#0f766e" stroke-width="3"/>
+            <line x1="649" y1="170" x2="605" y2="149" stroke="#0f766e" stroke-width="3"/>
+            <text x="680" y="232" text-anchor="middle" font-size="20" fill="#115e59">「何と何がどうつながるか」が中心</text>
+          </svg>
+          <figcaption class="diagram-caption">検索は場所を返し、graphify は関係を残します。後から経路として辿れるのが差です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>運用上の注意</h2>
+        <ul>
+          <li>過去の運用メモでは、`graphify` コマンドが存在しても、通常の `python3` では同じ環境を見ていないことがありました。</li>
+          <li>この環境でも shebang は <code>/home/masato/.local/share/uv/tools/graphifyy/bin/python3</code> を指していました。</li>
+          <li>ローカル確認では、skill 側の <code>.graphify_version</code> は <code>0.8.18</code>、インストール済みパッケージの metadata は <code>0.8.37</code> でした。</li>
+          <li>つまり、導入説明やトラブルシュートを書くときは、skill の説明文だけでなく、実際の CLI 実体と実行環境を見た方がよいです。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>使い始める順番</h2>
+        <ol>
+          <li>対象フォルダを決める</li>
+          <li><code>graphify extract &lt;path&gt;</code> で最初のグラフを作る</li>
+          <li><code>GRAPH_REPORT.md</code> と HTML 可視化で全体像を見る</li>
+          <li><code>query</code>、<code>path</code>、<code>explain</code> で局所理解を深める</li>
+          <li>更新が入ったら <code>update</code> で差分だけ再抽出する</li>
+        </ol>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 900 180" role="img" aria-label="graphifyの導入手順">
+            <rect x="20" y="55" width="150" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="95" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">対象を決める</text>
+            <path d="M170 90 H230" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="230,90 212,80 212,100" fill="#9ca3af"/>
+
+            <rect x="230" y="55" width="150" height="70" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="305" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">extract</text>
+            <path d="M380 90 H440" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="440,90 422,80 422,100" fill="#9ca3af"/>
+
+            <rect x="440" y="55" width="150" height="70" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="515" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">reportを見る</text>
+            <path d="M590 90 H650" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="650,90 632,80 632,100" fill="#9ca3af"/>
+
+            <rect x="650" y="55" width="110" height="70" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="705" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">query</text>
+            <path d="M760 90 H820" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="820,90 802,80 802,100" fill="#9ca3af"/>
+
+            <rect x="820" y="55" width="60" height="70" rx="20" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="850" y="97" text-anchor="middle" font-size="18" font-weight="700" fill="#6d28d9">update</text>
+          </svg>
+          <figcaption class="diagram-caption">最初は extract で全体像を作り、普段は report と query を使い、変更後に update を回すのが扱いやすい順番です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>graphify は、ファイル群をあとで質問できる知識グラフへ変えるための実務ツールです。コード探索、調査メモ整理、混在コーパスの横断理解に向いています。特に、`graphify-out/GRAPH_REPORT.md` と `graph.json` が残るので、単発の検索よりも継続利用に強いのが価値です。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/safishamsi/graphify">graphify GitHub repository</a></li>
+          <li><a href="https://github.com/safishamsi/graphify/issues">graphify Issues</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

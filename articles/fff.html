@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FFFとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / 検索基盤</p>
+      <h1>FFFとは何か</h1>
+      <p class="article-date">作成日: 2026年6月14日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>FFF は、ファイル名検索と内容検索を、長生きするプロセスの中で何度も速く回すための Rust ベースの検索基盤です。</li>
+          <li>価値は検索アルゴリズムだけでなく、毎回の process 起動、`.gitignore` 解析、file tree 走査を再利用できる点にあります。</li>
+          <li>MCP server として使うと、AI エージェントが shell の `grep` や `find` を何度も叩く代わりに、`find_files`、`grep`、`multi_grep` のような専用ツールを使えるようになります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何をするツールか</h2>
+        <p>FFF の README では、human と AI agents 向けの file search toolkit と説明されています。Neovim plugin として始まったものが、今は Rust の検索コア、background watcher、frecency、MCP server を持つ検索基盤になっています。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 230" role="img" aria-label="FFFの基本フロー">
+            <rect x="20" y="55" width="190" height="120" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="115" y="98" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">リポジトリ</text>
+            <text x="115" y="132" text-anchor="middle" font-size="20" fill="#7c2d12">files</text>
+            <text x="115" y="158" text-anchor="middle" font-size="20" fill="#7c2d12">content / git status</text>
+
+            <path d="M210 115 H330" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="330,115 312,105 312,125" fill="#9ca3af"/>
+
+            <rect x="330" y="35" width="240" height="160" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="450" y="78" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">FFF</text>
+            <text x="450" y="112" text-anchor="middle" font-size="20" fill="#44403c">index</text>
+            <text x="450" y="138" text-anchor="middle" font-size="20" fill="#44403c">frecency</text>
+            <text x="450" y="164" text-anchor="middle" font-size="20" fill="#44403c">watcher / cache</text>
+
+            <path d="M570 115 H690" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="690,115 672,105 672,125" fill="#9ca3af"/>
+
+            <rect x="690" y="35" width="210" height="54" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="795" y="68" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">find_files</text>
+
+            <rect x="690" y="103" width="210" height="54" rx="18" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="795" y="136" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">grep</text>
+
+            <rect x="690" y="171" width="210" height="34" rx="16" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="795" y="193" text-anchor="middle" font-size="16" font-weight="700" fill="#6d28d9">multi_grep / MCP</text>
+          </svg>
+          <figcaption class="diagram-caption">リポジトリを一度 warm な状態にして、その後の検索を tool として再利用する流れです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>何がうれしいか</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>反復検索が軽い</h3>
+            <p>毎回 shell command を起動し直さない前提で設計されています。</p>
+          </div>
+          <div class="mini-card">
+            <h3>順位付けがある</h3>
+            <p>frecency と git-aware annotation で、よく触るファイルを上げやすいです。</p>
+          </div>
+          <div class="mini-card">
+            <h3>AIに渡しやすい</h3>
+            <p>検索結果が構造化されて返るので、エージェント側での再パースが減ります。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>`grep` や `rg` とどう違うか</h2>
+        <p>単発の shell 検索なら、今でも `rg` は十分に強いです。ただ、AI エージェントは同じ repo に対して file search と content search を何度も繰り返すので、前処理の再利用が効いてきます。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 250" role="img" aria-label="rgとFFFの違い">
+            <rect x="30" y="25" width="380" height="190" rx="24" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="220" y="62" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">grep / rg</text>
+            <text x="220" y="102" text-anchor="middle" font-size="20" fill="#7c2d12">process 起動</text>
+            <text x="220" y="130" text-anchor="middle" font-size="20" fill="#7c2d12">gitignore 解析</text>
+            <text x="220" y="158" text-anchor="middle" font-size="20" fill="#7c2d12">file tree 走査</text>
+            <text x="220" y="186" text-anchor="middle" font-size="20" fill="#7c2d12">毎回やり直す</text>
+
+            <rect x="510" y="25" width="380" height="190" rx="24" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="700" y="62" text-anchor="middle" font-size="28" font-weight="700" fill="#0f766e">FFF</text>
+            <text x="700" y="102" text-anchor="middle" font-size="20" fill="#115e59">インデックス保持</text>
+            <text x="700" y="130" text-anchor="middle" font-size="20" fill="#115e59">watcher で更新</text>
+            <text x="700" y="158" text-anchor="middle" font-size="20" fill="#115e59">構造化結果を返す</text>
+            <text x="700" y="186" text-anchor="middle" font-size="20" fill="#115e59">反復検索向け</text>
+          </svg>
+          <figcaption class="diagram-caption">違いの中心は検索文字列そのものではなく、前処理を使い回す設計かどうかです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>MCP server としての使い方</h2>
+        <ul>
+          <li><code>find_files</code>: ファイル名、パス探索</li>
+          <li><code>grep</code>: 内容検索</li>
+          <li><code>multi_grep</code>: 複数パターンの OR 検索</li>
+        </ul>
+        <p>この環境でも、repo の AGENTS 指示で「file/path discovery は `find_files`、内容検索は `grep`」という使い分けが前提になっています。つまり、FFF は見た目以上に AI エージェントの探索導線に入り込みやすいです。</p>
+      </section>
+
+      <section>
+        <h2>内部の考え方</h2>
+        <p>FFF repo の AGENTS では、性能クリティカルな処理は Rust 側、Neovim 固有の UI は Lua 側と分けています。主要な構成は、global file picker state、background watcher、frecency DB、query history DB です。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 290" role="img" aria-label="FFFの内部構成">
+            <rect x="290" y="20" width="340" height="62" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="460" y="58" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">FFF core</text>
+
+            <rect x="40" y="120" width="240" height="58" rx="18" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="160" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">file picker state</text>
+
+            <rect x="340" y="120" width="240" height="58" rx="18" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="460" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">background watcher</text>
+
+            <rect x="640" y="120" width="240" height="58" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="760" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">content search</text>
+
+            <rect x="190" y="220" width="240" height="58" rx="18" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="310" y="255" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">frecency DB</text>
+
+            <rect x="490" y="220" width="240" height="58" rx="18" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="610" y="255" text-anchor="middle" font-size="20" font-weight="700" fill="#6d28d9">query history DB</text>
+
+            <line x1="460" y1="82" x2="160" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="82" x2="460" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="82" x2="760" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="160" y1="178" x2="310" y2="220" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="760" y1="178" x2="610" y2="220" stroke="#9ca3af" stroke-width="3"/>
+          </svg>
+          <figcaption class="diagram-caption">一度作った状態を維持しながら、順位付けと差分更新を続ける構成です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>CodeGraph と Graphify との違い</h2>
+        <ul>
+          <li><strong>FFF</strong>: まず探すための道具。識別子、ファイル、文字列を速く当てる</li>
+          <li><strong>CodeGraph</strong>: コード構造を理解する道具。caller、callee、impact を追う</li>
+          <li><strong>Graphify</strong>: コードや文書をまたいだ知識全体を俯瞰する道具</li>
+        </ul>
+        <div class="compare-box">
+          <p>実務では競合というより分業です。FFF で当たりを引き、CodeGraph で構造を追い、Graphify で全体像を見る、という並びが自然です。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>使い始める流れ</h2>
+        <ol>
+          <li>MCP server をインストールする</li>
+          <li>Codex や Claude Code に `fff` を登録する</li>
+          <li>必要なら frecency DB と history DB を付ける</li>
+          <li>repo の AGENTS で `find_files` と `grep` を優先利用するよう明示する</li>
+          <li>healthcheck で base path や git repo 認識を確認する</li>
+        </ol>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 180" role="img" aria-label="FFF導入手順">
+            <rect x="20" y="55" width="170" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">install</text>
+            <path d="M190 90 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,90 242,80 242,100" fill="#9ca3af"/>
+
+            <rect x="260" y="55" width="170" height="70" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="345" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">MCP登録</text>
+            <path d="M430 90 H500" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="500,90 482,80 482,100" fill="#9ca3af"/>
+
+            <rect x="500" y="55" width="170" height="70" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="585" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">AGENTS反映</text>
+            <path d="M670 90 H740" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="740,90 722,80 722,100" fill="#9ca3af"/>
+
+            <rect x="740" y="55" width="160" height="70" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="820" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">healthcheck</text>
+          </svg>
+          <figcaption class="diagram-caption">導入の肝は、入れること自体よりも、エージェントに優先利用させるところまで含めることです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>FFF は、単発の検索 CLI を置き換えるというより、AI エージェントの反復探索を軽くするための検索基盤です。特に MCP server として入れると、file search と grep を常駐状態つきの tool として扱えるので、セッション全体の探索コストを下げやすくなります。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/dmtrKovalenko/fff.nvim">FFF repository</a></li>
+          <li><a href="https://dmtrkovalenko.dev/install-fff-mcp.sh">FFF MCP installer</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

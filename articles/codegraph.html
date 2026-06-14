@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeGraphとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / コード探索</p>
+      <h1>CodeGraphとは何か</h1>
+      <p class="article-date">作成日: 2026年6月14日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>CodeGraph は、コードベースをローカルで索引化して、エージェントが構造質問へ直接答えやすくするためのコードインテリジェンス基盤です。</li>
+          <li>価値は「検索できること」だけではなく、MCP ツール経由で symbol、caller、callee、impact、explore をまとめて返せることにあります。</li>
+          <li>README では auto-sync、framework-aware routes、20以上の言語対応を前面に出しており、実装上も `CodeGraph` クラスが抽出、解決、探索、文脈生成、DB を束ねています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何をするツールか</h2>
+        <p>CodeGraph は、`grep` とファイル読みを何度も繰り返す代わりに、あらかじめ構築したローカル索引からコード構造を返すための仕組みです。README では「semantic code intelligence」「100% local」を打ち出していて、エージェントに MCP server をつなぐ形で使います。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 230" role="img" aria-label="CodeGraphの基本フロー">
+            <rect x="20" y="55" width="190" height="120" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="115" y="98" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">コードベース</text>
+            <text x="115" y="132" text-anchor="middle" font-size="20" fill="#7c2d12">TypeScript</text>
+            <text x="115" y="158" text-anchor="middle" font-size="20" fill="#7c2d12">Python / Go / Rust...</text>
+
+            <path d="M210 115 H330" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="330,115 312,105 312,125" fill="#9ca3af"/>
+
+            <rect x="330" y="35" width="240" height="160" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="450" y="78" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">CodeGraph</text>
+            <text x="450" y="112" text-anchor="middle" font-size="20" fill="#44403c">index</text>
+            <text x="450" y="138" text-anchor="middle" font-size="20" fill="#44403c">reference resolve</text>
+            <text x="450" y="164" text-anchor="middle" font-size="20" fill="#44403c">context build</text>
+
+            <path d="M570 115 H690" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="690,115 672,105 672,125" fill="#9ca3af"/>
+
+            <rect x="690" y="35" width="210" height="54" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="795" y="68" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">MCP tools</text>
+
+            <rect x="690" y="103" width="210" height="54" rx="18" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="795" y="136" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">codegraph_explore</text>
+
+            <rect x="690" y="171" width="210" height="34" rx="16" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="795" y="193" text-anchor="middle" font-size="16" font-weight="700" fill="#6d28d9">search / callers / impact</text>
+          </svg>
+          <figcaption class="diagram-caption">コードを前もって索引化し、その結果を MCP ツールとしてエージェントへ返す構造です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>何がうれしいか</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>探索が短い</h3>
+            <p>構造質問を `codegraph_explore` などで直接引けるので、探索用の grep が減ります。</p>
+          </div>
+          <div class="mini-card">
+            <h3>ローカル完結</h3>
+            <p>README では SQLite ベースの 100% local を前面に出しています。</p>
+          </div>
+          <div class="mini-card">
+            <h3>編集後も追随</h3>
+            <p>watcher と connect-time catch-up により索引の古さを抑えます。</p>
+          </div>
+        </div>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 250" role="img" aria-label="通常探索とCodeGraph利用の違い">
+            <rect x="30" y="25" width="380" height="190" rx="24" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="220" y="62" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">CodeGraphなし</text>
+            <text x="220" y="102" text-anchor="middle" font-size="20" fill="#7c2d12">find / grep / read</text>
+            <text x="220" y="130" text-anchor="middle" font-size="20" fill="#7c2d12">↓</text>
+            <text x="220" y="158" text-anchor="middle" font-size="20" fill="#7c2d12">候補を何度も絞る</text>
+            <text x="220" y="186" text-anchor="middle" font-size="20" fill="#7c2d12">探索コストが増える</text>
+
+            <rect x="510" y="25" width="380" height="190" rx="24" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="700" y="62" text-anchor="middle" font-size="28" font-weight="700" fill="#0f766e">CodeGraphあり</text>
+            <text x="700" y="102" text-anchor="middle" font-size="20" fill="#115e59">explore / node / callers</text>
+            <text x="700" y="130" text-anchor="middle" font-size="20" fill="#115e59">↓</text>
+            <text x="700" y="158" text-anchor="middle" font-size="20" fill="#115e59">構造化された答えを返す</text>
+            <text x="700" y="186" text-anchor="middle" font-size="20" fill="#115e59">探索回数を減らせる</text>
+          </svg>
+          <figcaption class="diagram-caption">価値の中心は「検索が少し速い」ではなく、「構造質問の入口が直接用意される」ことです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>公開されている主なツール面</h2>
+        <ul>
+          <li><code>codegraph_explore</code>: 構造質問の主入口</li>
+          <li><code>codegraph_search</code>: symbol を探す</li>
+          <li><code>codegraph_callers</code> / <code>codegraph_callees</code>: 呼び出し関係を辿る</li>
+          <li><code>codegraph_impact</code>: 変更影響をみる</li>
+          <li><code>codegraph_node</code>: 特定 symbol のソースを引く</li>
+          <li><code>codegraph_status</code> / <code>codegraph_files</code>: 索引状態や対象ファイルを確認する</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>内部はどう分かれているか</h2>
+        <p>メモと `src/index.ts` を見る限り、`CodeGraph` クラスが主要コンポーネントを束ねる構造です。説明しやすい分け方は、抽出、参照解決、探索、文脈生成、保存の5つです。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 300" role="img" aria-label="CodeGraphの内部構成">
+            <rect x="300" y="20" width="320" height="62" rx="22" fill="#fafaf9" stroke="#57534e" stroke-width="2"/>
+            <text x="460" y="58" text-anchor="middle" font-size="28" font-weight="700" fill="#1c1917">CodeGraph class</text>
+
+            <rect x="40" y="120" width="240" height="58" rx="18" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="160" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">ExtractionOrchestrator</text>
+
+            <rect x="340" y="120" width="240" height="58" rx="18" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="460" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">ReferenceResolver</text>
+
+            <rect x="640" y="120" width="240" height="58" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="760" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">GraphQueryManager</text>
+
+            <rect x="190" y="220" width="240" height="58" rx="18" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="310" y="255" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">GraphTraverser</text>
+
+            <rect x="490" y="220" width="240" height="58" rx="18" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="610" y="255" text-anchor="middle" font-size="20" font-weight="700" fill="#6d28d9">ContextBuilder</text>
+
+            <rect x="720" y="220" width="160" height="58" rx="18" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+            <text x="800" y="255" text-anchor="middle" font-size="20" font-weight="700" fill="#0e7490">DB</text>
+
+            <line x1="460" y1="82" x2="160" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="82" x2="460" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="82" x2="760" y2="120" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="178" x2="310" y2="220" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="460" y1="178" x2="610" y2="220" stroke="#9ca3af" stroke-width="3"/>
+            <line x1="760" y1="178" x2="800" y2="220" stroke="#9ca3af" stroke-width="3"/>
+          </svg>
+          <figcaption class="diagram-caption">抽出して、参照を解決し、問い合わせや文脈生成に使い、その結果をローカル DB に載せる構造です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>扱うデータの考え方</h2>
+        <ul>
+          <li><strong>nodes</strong>: file、class、function、route、component などのコード要素</li>
+          <li><strong>edges</strong>: contains、calls、imports、references などの関係</li>
+          <li><strong>unresolved_refs</strong>: まだ解決しきれていない参照</li>
+        </ul>
+        <div class="compare-box">
+          <p>ただの全文索引ではなく、構造化ノードと関係エッジを持つので、caller や impact のような質問に向いています。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>使い始める流れ</h2>
+        <ol>
+          <li><code>codegraph install</code> で agent 側の MCP 設定を入れる</li>
+          <li>対象リポジトリで <code>codegraph init -i</code> を実行する</li>
+          <li>`.codegraph/` ができたら、agent から `codegraph_explore` などを使う</li>
+          <li>編集後は watcher と connect-time catch-up で索引を追随させる</li>
+        </ol>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 180" role="img" aria-label="CodeGraphの導入手順">
+            <rect x="20" y="55" width="170" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">install</text>
+            <path d="M190 90 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,90 242,80 242,100" fill="#9ca3af"/>
+
+            <rect x="260" y="55" width="170" height="70" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="345" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">init -i</text>
+            <path d="M430 90 H500" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="500,90 482,80 482,100" fill="#9ca3af"/>
+
+            <rect x="500" y="55" width="170" height="70" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="585" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">explore</text>
+            <path d="M670 90 H740" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="740,90 722,80 722,100" fill="#9ca3af"/>
+
+            <rect x="740" y="55" width="160" height="70" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="820" y="97" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">auto-sync</text>
+          </svg>
+          <figcaption class="diagram-caption">最初に install と init を済ませると、あとは explore 系を入口にして使い続けやすくなります。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>向いている場面</h2>
+        <ul>
+          <li>大きめのリポジトリで、毎回 grep と Read を繰り返すのが重いとき</li>
+          <li>call flow、route、impact のような構造質問が多いとき</li>
+          <li>Claude Code、Codex、Cursor など複数 agent に同じ索引を使わせたいとき</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>CodeGraph は、コードをローカルで索引化し、エージェントに構造化された入口を与えるための基盤です。強みは単なる検索速度ではなく、`explore`、`callers`、`impact` のようなコード理解用ツール面と、watcher を含む継続運用のしやすさにあります。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/colbymchenry/codegraph">CodeGraph GitHub repository</a></li>
+          <li><a href="https://colbymchenry.github.io/codegraph/">CodeGraph documentation site</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
