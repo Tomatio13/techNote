@@ -1,193 +1,285 @@
 <!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>技術ノート</title>
-  <meta name="description" content="スマホやPCで投げた技術的な疑問を、読み返せるHTMLノートとして蓄積するための静的サイトです。">
-  <link rel="stylesheet" href="styles/site.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="index.html">技術ノート</a>
-      <nav class="nav" aria-label="カテゴリ">
-        <a href="#recent">新着</a>
-        <a href="#web">Web</a>
-        <a href="#ai">AI</a>
-        <a href="#infra">インフラ</a>
-        <a href="#devtools">開発環境</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="page">
-    <section class="hero">
-      <p class="eyebrow">Knowledge Notes</p>
-      <h1>調べたことを、その場で読み返せる形に残す</h1>
-      <p class="lead">
-        スマホやPCで投げた質問を、HTML記事として <code>articles/</code> に蓄積します。
-        このトップページでは、新着とカテゴリ別の両方から辿れるように整理します。
-      </p>
-    </section>
-
-    <section class="section-map" aria-label="分類マップ">
-      <a href="#recent">
-        <span class="section-map-label">新着</span>
-        <strong>直近の記事を確認</strong>
-      </a>
-      <a href="#web">
-        <span class="section-map-label">Web</span>
-        <strong>フロントエンドとAPI</strong>
-      </a>
-      <a href="#ai">
-        <span class="section-map-label">AI</span>
-        <strong>モデル・設計・運用</strong>
-      </a>
-      <a href="#infra">
-        <span class="section-map-label">インフラ</span>
-        <strong>クラウド・認証・配信</strong>
-      </a>
-      <a href="#devtools">
-        <span class="section-map-label">開発環境</span>
-        <strong>CLIとTUIの道具</strong>
-      </a>
-    </section>
-
-    <section class="recent-section" id="recent" aria-labelledby="recent-heading">
-      <div class="domain-heading">
-        <p class="eyebrow">新着</p>
-        <h2 id="recent-heading">最近追加した記事</h2>
-        <p class="section-note">記事を追加すると、ここに新着カードを並べます。</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>技術ノート</title>
+    <meta
+      name="description"
+      content="スマホやPCで投げた技術的な疑問を、読み返せるHTMLノートとして蓄積するための静的サイトです。"
+    />
+    <link rel="stylesheet" href="styles/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="index.html">技術ノート</a>
+        <nav class="nav" aria-label="カテゴリ">
+          <a href="#recent">新着</a>
+          <a href="#web">Web</a>
+          <a href="#ai">AI</a>
+          <a href="#infra">インフラ</a>
+          <a href="#devtools">開発環境</a>
+        </nav>
       </div>
-      <div class="article-list">
-        <a class="article-card" href="articles/elio.html">
-          <p class="card-meta-row">
-            <time class="article-date" datetime="2026-06-15">2026年6月15日</time>
-            <span class="eyebrow">開発環境 / TUI</span>
+    </header>
+
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Knowledge Notes</p>
+        <h1>調べたことを、その場で読み返せる形に残す</h1>
+        <p class="lead">
+          スマホやPCで投げた質問を、HTML記事として
+          <code>articles/</code> に蓄積します。
+          このトップページでは、新着とカテゴリ別の両方から辿れるように整理します。
+        </p>
+      </section>
+
+      <section class="section-map" aria-label="分類マップ">
+        <a href="#recent">
+          <span class="section-map-label">新着</span>
+          <strong>直近の記事を確認</strong>
+        </a>
+        <a href="#web">
+          <span class="section-map-label">Web</span>
+          <strong>フロントエンドとAPI</strong>
+        </a>
+        <a href="#ai">
+          <span class="section-map-label">AI</span>
+          <strong>モデル・設計・運用</strong>
+        </a>
+        <a href="#infra">
+          <span class="section-map-label">インフラ</span>
+          <strong>クラウド・認証・配信</strong>
+        </a>
+        <a href="#devtools">
+          <span class="section-map-label">開発環境</span>
+          <strong>CLIとTUIの道具</strong>
+        </a>
+      </section>
+
+      <section
+        class="recent-section"
+        id="recent"
+        aria-labelledby="recent-heading"
+      >
+        <div class="domain-heading">
+          <p class="eyebrow">新着</p>
+          <h2 id="recent-heading">最近追加した記事</h2>
+          <p class="section-note">
+            記事を追加すると、ここに新着カードを並べます。
           </p>
-          <h3>elioとは何か</h3>
-          <p>3ペイン、rich preview、inline image、Trash、shell integration を備えた terminal file manager の実体を整理します。</p>
-          <span class="meta">端末ファイラ · 画像対応</span>
-        </a>
+        </div>
+        <div class="article-list">
+          <a class="article-card" href="articles/open-knowledge-format.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-15"
+                >2026年6月15日</time
+              >
+              <span class="eyebrow">AI / ナレッジフォーマット</span>
+            </p>
+            <h3>Open Knowledge Formatとは何か</h3>
+            <p>
+              Google Cloud
+              が2026年6月に公開した、AIエージェントが読み書きするナレッジを
+              Markdown + YAML frontmatter
+              で表現するベンダーニュートラルなオープン仕様の実体を整理します。
+            </p>
+            <span class="meta">LLM-wikiの標準化 · Draft v0.1</span>
+          </a>
 
-        <a class="article-card" href="articles/entire-cli.html">
-          <p class="card-meta-row">
-            <time class="article-date" datetime="2026-06-15">2026年6月15日</time>
-            <span class="eyebrow">AI / 開発履歴</span>
-          </p>
-          <h3>Entire CLIとは何か</h3>
-          <p>AI エージェントとの作業ログを Git に結び付け、checkpoint、resume、監査向けの文脈保存を行う CLI の実体を整理します。</p>
-          <span class="meta">Git連携 · transcript保存</span>
-        </a>
+          <a class="article-card" href="articles/elio.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-15"
+                >2026年6月15日</time
+              >
+              <span class="eyebrow">開発環境 / TUI</span>
+            </p>
+            <h3>elioとは何か</h3>
+            <p>
+              3ペイン、rich preview、inline image、Trash、shell integration
+              を備えた terminal file manager の実体を整理します。
+            </p>
+            <span class="meta">端末ファイラ · 画像対応</span>
+          </a>
 
-        <a class="article-card" href="articles/fff.html">
-          <p class="card-meta-row">
-            <time class="article-date" datetime="2026-06-14">2026年6月14日</time>
-            <span class="eyebrow">AI / 検索基盤</span>
-          </p>
-          <h3>FFFとは何か</h3>
-          <p>反復検索を速くする Rust ベースの検索基盤として、MCP、常駐状態、frecency、watcher の意味を整理します。</p>
-          <span class="meta">MCP対応 · 検索特化</span>
-        </a>
+          <a class="article-card" href="articles/entire-cli.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-15"
+                >2026年6月15日</time
+              >
+              <span class="eyebrow">AI / 開発履歴</span>
+            </p>
+            <h3>Entire CLIとは何か</h3>
+            <p>
+              AI エージェントとの作業ログを Git
+              に結び付け、checkpoint、resume、監査向けの文脈保存を行う CLI
+              の実体を整理します。
+            </p>
+            <span class="meta">Git連携 · transcript保存</span>
+          </a>
 
-        <a class="article-card" href="articles/codegraph.html">
-          <p class="card-meta-row">
-            <time class="article-date" datetime="2026-06-14">2026年6月14日</time>
-            <span class="eyebrow">AI / コード探索</span>
-          </p>
-          <h3>CodeGraphとは何か</h3>
-          <p>コードベースをローカルで索引化し、MCP 経由で構造質問に直接答えやすくする仕組みと使い方を整理します。</p>
-          <span class="meta">MCP連携 · 自動同期あり</span>
-        </a>
+          <a class="article-card" href="articles/fff.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-14"
+                >2026年6月14日</time
+              >
+              <span class="eyebrow">AI / 検索基盤</span>
+            </p>
+            <h3>FFFとは何か</h3>
+            <p>
+              反復検索を速くする Rust
+              ベースの検索基盤として、MCP、常駐状態、frecency、watcher
+              の意味を整理します。
+            </p>
+            <span class="meta">MCP対応 · 検索特化</span>
+          </a>
 
-        <a class="article-card" href="articles/graphify.html">
-          <p class="card-meta-row">
-            <time class="article-date" datetime="2026-06-14">2026年6月14日</time>
-            <span class="eyebrow">AI / ナレッジグラフ</span>
-          </p>
-          <h3>graphifyとは何か</h3>
-          <p>コード、文書、画像などを知識グラフ化し、HTML、JSON、レポートとして扱う CLI と skill の実体を整理します。</p>
-          <span class="meta">CLI確認済み · 運用注意あり</span>
-        </a>
-      </div>
-    </section>
+          <a class="article-card" href="articles/codegraph.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-14"
+                >2026年6月14日</time
+              >
+              <span class="eyebrow">AI / コード探索</span>
+            </p>
+            <h3>CodeGraphとは何か</h3>
+            <p>
+              コードベースをローカルで索引化し、MCP
+              経由で構造質問に直接答えやすくする仕組みと使い方を整理します。
+            </p>
+            <span class="meta">MCP連携 · 自動同期あり</span>
+          </a>
 
-    <section class="domain-section" id="web" aria-labelledby="web-heading">
-      <div class="domain-heading">
-        <p class="eyebrow">Web</p>
-        <h2 id="web-heading">画面、ルーティング、API</h2>
-      </div>
-      <div class="empty-state">
-        <p>Webカテゴリの記事は未作成です。</p>
-      </div>
-    </section>
+          <a class="article-card" href="articles/graphify.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-14"
+                >2026年6月14日</time
+              >
+              <span class="eyebrow">AI / ナレッジグラフ</span>
+            </p>
+            <h3>graphifyとは何か</h3>
+            <p>
+              コード、文書、画像などを知識グラフ化し、HTML、JSON、レポートとして扱う
+              CLI と skill の実体を整理します。
+            </p>
+            <span class="meta">CLI確認済み · 運用注意あり</span>
+          </a>
+        </div>
+      </section>
 
-    <section class="domain-section" id="ai" aria-labelledby="ai-heading">
-      <div class="domain-heading">
-        <p class="eyebrow">AI</p>
-        <h2 id="ai-heading">モデル、ツール、運用</h2>
-      </div>
-      <div class="article-row-list">
-        <a class="article-row" href="articles/entire-cli.html">
-          <div class="article-row-main">
-            <span class="article-row-title">Entire CLIとは何か</span>
-            <p class="article-row-desc">AI セッションの transcript と checkpoint を Git に結び付け、resume や traceability を可能にする CLI と、その注意点を整理します。</p>
-          </div>
-          <span class="article-row-meta">AI / 開発履歴</span>
-        </a>
+      <section class="domain-section" id="web" aria-labelledby="web-heading">
+        <div class="domain-heading">
+          <p class="eyebrow">Web</p>
+          <h2 id="web-heading">画面、ルーティング、API</h2>
+        </div>
+        <div class="empty-state">
+          <p>Webカテゴリの記事は未作成です。</p>
+        </div>
+      </section>
 
-        <a class="article-row" href="articles/fff.html">
-          <div class="article-row-main">
-            <span class="article-row-title">FFFとは何か</span>
-            <p class="article-row-desc">AI エージェント向けの file search / grep を、毎回の process 起動なしで速く回すための検索基盤として整理します。</p>
-          </div>
-          <span class="article-row-meta">AI / 検索基盤</span>
-        </a>
+      <section class="domain-section" id="ai" aria-labelledby="ai-heading">
+        <div class="domain-heading">
+          <p class="eyebrow">AI</p>
+          <h2 id="ai-heading">モデル、ツール、運用</h2>
+        </div>
+        <div class="article-row-list">
+          <a class="article-row" href="articles/open-knowledge-format.html">
+            <div class="article-row-main">
+              <span class="article-row-title"
+                >Open Knowledge Formatとは何か</span
+              >
+              <p class="article-row-desc">
+                AIエージェントが読み書きするナレッジを、Markdown + YAML
+                frontmatter
+                のディレクトリとして標準化するオープン仕様の意図と構造を整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / ナレッジフォーマット</span>
+          </a>
 
-        <a class="article-row" href="articles/codegraph.html">
-          <div class="article-row-main">
-            <span class="article-row-title">CodeGraphとは何か</span>
-            <p class="article-row-desc">コード探索で grep と file read を減らすための、ローカル索引、MCP ツール、auto-sync の仕組みを整理します。</p>
-          </div>
-          <span class="article-row-meta">AI / コード探索</span>
-        </a>
+          <a class="article-row" href="articles/entire-cli.html">
+            <div class="article-row-main">
+              <span class="article-row-title">Entire CLIとは何か</span>
+              <p class="article-row-desc">
+                AI セッションの transcript と checkpoint を Git
+                に結び付け、resume や traceability を可能にする CLI
+                と、その注意点を整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / 開発履歴</span>
+          </a>
 
-        <a class="article-row" href="articles/graphify.html">
-          <div class="article-row-main">
-            <span class="article-row-title">graphifyとは何か</span>
-            <p class="article-row-desc">どんな入力を扱い、何を出力し、どのコマンドを起点に使うとよいかを、ローカル環境の実体ベースで整理します。</p>
-          </div>
-          <span class="article-row-meta">AI / ナレッジグラフ</span>
-        </a>
-      </div>
-    </section>
+          <a class="article-row" href="articles/fff.html">
+            <div class="article-row-main">
+              <span class="article-row-title">FFFとは何か</span>
+              <p class="article-row-desc">
+                AI エージェント向けの file search / grep を、毎回の process
+                起動なしで速く回すための検索基盤として整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / 検索基盤</span>
+          </a>
 
-    <section class="domain-section" id="infra" aria-labelledby="infra-heading">
-      <div class="domain-heading">
-        <p class="eyebrow">インフラ</p>
-        <h2 id="infra-heading">認証、クラウド、公開運用</h2>
-      </div>
-      <div class="empty-state">
-        <p>インフラカテゴリの記事は未作成です。</p>
-      </div>
-    </section>
+          <a class="article-row" href="articles/codegraph.html">
+            <div class="article-row-main">
+              <span class="article-row-title">CodeGraphとは何か</span>
+              <p class="article-row-desc">
+                コード探索で grep と file read を減らすための、ローカル索引、MCP
+                ツール、auto-sync の仕組みを整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / コード探索</span>
+          </a>
 
-    <section class="domain-section" id="devtools" aria-labelledby="devtools-heading">
-      <div class="domain-heading">
-        <p class="eyebrow">開発環境</p>
-        <h2 id="devtools-heading">CLI、TUI、ローカル作業環境</h2>
-      </div>
-      <div class="article-row-list">
-        <a class="article-row" href="articles/elio.html">
-          <div class="article-row-main">
-            <span class="article-row-title">elioとは何か</span>
-            <p class="article-row-desc">プレビュー重視の terminal file manager として、3ペイン構成、画像表示、Trash、shell integration の実体を整理します。</p>
-          </div>
-          <span class="article-row-meta">開発環境 / TUI</span>
-        </a>
-      </div>
-    </section>
-  </main>
-</body>
+          <a class="article-row" href="articles/graphify.html">
+            <div class="article-row-main">
+              <span class="article-row-title">graphifyとは何か</span>
+              <p class="article-row-desc">
+                どんな入力を扱い、何を出力し、どのコマンドを起点に使うとよいかを、ローカル環境の実体ベースで整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / ナレッジグラフ</span>
+          </a>
+        </div>
+      </section>
+
+      <section
+        class="domain-section"
+        id="infra"
+        aria-labelledby="infra-heading"
+      >
+        <div class="domain-heading">
+          <p class="eyebrow">インフラ</p>
+          <h2 id="infra-heading">認証、クラウド、公開運用</h2>
+        </div>
+        <div class="empty-state">
+          <p>インフラカテゴリの記事は未作成です。</p>
+        </div>
+      </section>
+
+      <section
+        class="domain-section"
+        id="devtools"
+        aria-labelledby="devtools-heading"
+      >
+        <div class="domain-heading">
+          <p class="eyebrow">開発環境</p>
+          <h2 id="devtools-heading">CLI、TUI、ローカル作業環境</h2>
+        </div>
+        <div class="article-row-list">
+          <a class="article-row" href="articles/elio.html">
+            <div class="article-row-main">
+              <span class="article-row-title">elioとは何か</span>
+              <p class="article-row-desc">
+                プレビュー重視の terminal file manager
+                として、3ペイン構成、画像表示、Trash、shell integration
+                の実体を整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">開発環境 / TUI</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>

@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Knowledge Formatとは何か</title>
+    <meta
+      name="description"
+      content="Google Cloud が2026年6月に公開した Open Knowledge Format (OKF) の仕様と意図を、一次情報ベースで整理します。"
+    />
+    <link rel="stylesheet" href="../styles/site.css" />
+  </head>
+  <body>
+    <main class="article-page">
+      <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+      <article class="article-shell">
+        <p class="eyebrow">AI / ナレッジフォーマット</p>
+        <h1>Open Knowledge Formatとは何か</h1>
+        <p class="article-date">作成日: 2026年6月15日</p>
+
+        <section>
+          <h2>要点</h2>
+          <ul>
+            <li>
+              Open Knowledge Format（OKF）は、Google Cloud
+              が2026年6月12日に公開したオープン仕様（現行 Version 0.1
+              Draft）です。
+            </li>
+            <li>
+              AI
+              エージェントが読み書きする「ナレッジ」を、人間にもエージェントにも扱いやすい形で表現することを目的とします。
+            </li>
+            <li>
+              実体は「YAML frontmatter 付き Markdown
+              ファイルのディレクトリ」だけで、スキーマレジストリも中央管理機関も必須のSDKもありません。cat
+              で読めて、git clone で配れます。
+            </li>
+            <li>
+              Andrej Karpathy
+              が提唱した「LLM-wiki」パターンを、ベンダーニュートラルでポータブルな標準へ形式化したものです。
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>何を解決するフォーマットか</h2>
+          <p>
+            AI
+            エージェント向けのナレッジ表現は急速に進化しており、互換性のない慣習が多数生まれています。OKF
+            は、ナレッジを「よく使われる既存の形式」で表現するのが最適だという立場をとります。人間がツールなしで読め、エージェントが専用SDKなしで解析できることを前提にしています。
+          </p>
+          <p>
+            背景にあるのは、Andrej Karpathy が提唱した
+            <strong>LLM-wiki</strong> パターン、つまり Markdown と frontmatter
+            を使ってエージェントが読めるナレッジベースを作る手法です。この手法は広く使われ始めているものの、各現場で独自ルールが乱立しがちでした。OKF
+            は小さなルールの集合だけを固定し、ツールを強要せずに相互運用性を確保することを目指しています。
+          </p>
+          <div class="note-box">
+            <p>
+              位置づけは「仕様化された（specified）フォーマット」です。Obsidian
+              や Notion のような個人ナレッジツールも同じ Markdown + frontmatter
+              の系譜ですが、OKF
+              は相互運用に必要な最小限の規則を明文化した点が異なります。
+            </p>
+          </div>
+          <figure class="diagram-card">
+            <svg
+              viewBox="0 0 900 220"
+              role="img"
+              aria-label="OKFの作成・交換・消費の流れ"
+            >
+              <rect
+                x="20"
+                y="45"
+                width="200"
+                height="130"
+                rx="22"
+                fill="#fff7ed"
+                stroke="#c2410c"
+                stroke-width="2"
+              />
+              <text
+                x="120"
+                y="82"
+                text-anchor="middle"
+                font-size="24"
+                font-weight="700"
+                fill="#9a3412"
+              >
+                Authoring
+              </text>
+              <text
+                x="120"
+                y="114"
+                text-anchor="middle"
+                font-size="18"
+                fill="#7c2d12"
+              >
+                人間が書く
+              </text>
+              <text
+                x="120"
+                y="140"
+                text-anchor="middle"
+                font-size="18"
+                fill="#7c2d12"
+              >
+                エージェントが生成
+              </text>
+
+              <path
+                d="M220 110 H335"
+                stroke="#9ca3af"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <polygon points="335,110 317,100 317,120" fill="#9ca3af" />
+
+              <rect
+                x="335"
+                y="45"
+                width="230"
+                height="130"
+                rx="22"
+                fill="#fafaf9"
+                stroke="#57534e"
+                stroke-width="2"
+              />
+              <text
+                x="450"
+                y="82"
+                text-anchor="middle"
+                font-size="24"
+                font-weight="700"
+                fill="#1c1917"
+              >
+                Exchange
+              </text>
+              <text
+                x="450"
+                y="114"
+                text-anchor="middle"
+                font-size="18"
+                fill="#44403c"
+              >
+                OKF bundle
+              </text>
+              <text
+                x="450"
+                y="140"
+                text-anchor="middle"
+                font-size="18"
+                fill="#44403c"
+              >
+                組織をまたぐ受け渡し
+              </text>
+
+              <path
+                d="M565 110 H680"
+                stroke="#9ca3af"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <polygon points="680,110 662,100 662,120" fill="#9ca3af" />
+
+              <rect
+                x="680"
+                y="45"
+                width="200"
+                height="130"
+                rx="22"
+                fill="#eff6ff"
+                stroke="#2563eb"
+                stroke-width="2"
+              />
+              <text
+                x="780"
+                y="82"
+                text-anchor="middle"
+                font-size="24"
+                font-weight="700"
+                fill="#1d4ed8"
+              >
+                Consumption
+              </text>
+              <text
+                x="780"
+                y="114"
+                text-anchor="middle"
+                font-size="18"
+                fill="#1e40af"
+              >
+                エージェントが読む
+              </text>
+              <text
+                x="780"
+                y="140"
+                text-anchor="middle"
+                font-size="18"
+                fill="#1e40af"
+              >
+                人間も読む
+              </text>
+
+              <text
+                x="450"
+                y="198"
+                text-anchor="middle"
+                font-size="18"
+                font-weight="700"
+                fill="#57534e"
+              >
+                Markdown + YAML frontmatter で一貫
+              </text>
+            </svg>
+            <figcaption class="diagram-caption">
+              ナレッジは人間かエージェントが書き、bundle
+              として交換され、人間とエージェントの両方が読みます。形式が共通なので、どの経路でも同じ文件がそのまま通ります。
+            </figcaption>
+          </figure>
+        </section>
+
+        <section>
+          <h2>フォーマットの実体</h2>
+          <p>
+            OKF は意図的に最小です。対象は「<strong
+              >YAML frontmatter 付き Markdown ファイルのディレクトリ</strong
+            >」のみです。スキーマレジストリ、中央管理機関、必須ツールは一切ありません。
+          </p>
+          <p>仕様書は、この簡潔さを次のように表現しています。</p>
+          <div class="compare-box">
+            <p>
+              If you can <code>cat</code> a file, you can read OKF; if you can
+              <code>git clone</code> a repo, you can ship it.<br />（cat
+              で読めて、git clone で配れる）
+            </p>
+          </div>
+          <p>
+            つまり、特別なランタイムやパーサーを用意しなくても、標準的なファイル操作と
+            Markdown
+            の知識だけで作成・配布・閲覧が完結します。これが「ベンダーニュートラル」を実現する根幹です。
+          </p>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <h3>読める</h3>
+              <p>
+                人間がエディタや
+                <code>cat</code> でそのまま読めます。専用アプリが不要です。
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>解析できる</h3>
+              <p>
+                エージェントが専用 SDK なしで frontmatter
+                を解析し、走査できます。
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>配れる</h3>
+              <p>
+                ディレクトリごと
+                <code>git clone</code> すれば、そのまま受け渡せます。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>概念（concept）の構造</h2>
+          <p>
+            OKF では、1つの Markdown
+            ファイルが1つの<strong>概念（concept）</strong>を表します。概念は、テーブルや
+            API
+            のような実体のある資産を記述することもあれば、メトリクスや業務プロセス、プレイブックのような抽象的な事柄を記述することもあります。ファイルは
+            UTF-8 の Markdown で、次の2つの部分から成ります。
+          </p>
+          <ul>
+            <li>
+              <strong>Frontmatter</strong>: ファイル先頭の
+              <code>---</code> で区切られた YAML メタデータブロック。
+            </li>
+            <li>
+              <strong>Body</strong>: frontmatter 以降の、自由形式の Markdown
+              本文。
+            </li>
+          </ul>
+          <p>
+            frontmatter の<strong
+              >必須フィールドは <code>type</code> のみ</strong
+            >です。推奨フィールドと、拡張（追加キーは自由、消費側は未知のキーを寛容に扱う）の規則は以下の通りです。
+          </p>
+          <figure class="diagram-card">
+            <pre
+              style="
+                margin: 0;
+                overflow-x: auto;
+                font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+                font-size: 0.9rem;
+                line-height: 1.6;
+              "
+            ><code>---
+type: &lt;Type name&gt;                  # 必須
+title: &lt;Optional display name&gt;
+description: &lt;Optional one-line summary&gt;
+resource: &lt;Optional canonical URI for the underlying asset&gt;
+tags: [&lt;tag&gt;, &lt;tag&gt;, …]            # 任意
+timestamp: &lt;ISO 8601 datetime&gt;     # 任意の最終更新時刻
+# … 生産者が自由に定義したキー/値
+---</code></pre>
+            <figcaption class="diagram-caption">
+              必須は type のみ。type 値は中央登録されず、消費側は未知の type
+              を寛容に扱います（例: BigQuery Table, API Endpoint, Metric,
+              Playbook）。
+            </figcaption>
+          </figure>
+          <p>
+            本文は標準的な Markdown
+            です。見出し・リスト・表・コードブロックのような「構造的な
+            Markdown」が推奨されます。構造がある方が、人間の阅读にもエージェントの検索にも都合が良いためです。<code
+              ># Schema</code
+            >、<code># Examples</code>、<code># Citations</code>
+            などの見出しには慣習的な意味が与えられています。
+          </p>
+          <figure class="diagram-card">
+            <pre
+              style="
+                margin: 0;
+                overflow-x: auto;
+                font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+                font-size: 0.85rem;
+                line-height: 1.55;
+              "
+            ><code>---
+type: BigQuery Table
+title: Customer Orders
+description: One row per completed customer order across all channels.
+resource: https://console.cloud.google.com/bigquery?p=acme&d=sales&t=orders
+tags: [sales, orders, revenue]
+timestamp: 2026-05-28T14:30:00Z
+---
+# Schema
+| Column        | Type      | Description                         |
+|---------------|-----------|-------------------------------------|
+| `order_id`    | STRING    | Globally unique order identifier.   |
+| `customer_id` | STRING    | FK into [customers](/tables/customers.md). |
+
+# Citations
+[1] [BigQuery table schema](https://console.cloud.google.com/...)</code></pre>
+            <figcaption class="diagram-caption">
+              実体のある資源（テーブル）を記述する概念の例。resource に正規の
+              URI を持ち、本文でスキーマと引用を構造的に示します。
+            </figcaption>
+          </figure>
+          <figure class="diagram-card">
+            <pre
+              style="
+                margin: 0;
+                overflow-x: auto;
+                font-family: &quot;SFMono-Regular&quot;, Consolas, monospace;
+                font-size: 0.85rem;
+                line-height: 1.55;
+              "
+            ><code>---
+type: Playbook
+title: Incident response — data freshness alert
+description: Steps to triage a freshness alert on the orders pipeline.
+tags: [oncall, incident]
+---
+# Trigger
+A freshness alert fires when `orders` lags more than 30 minutes.
+See the [orders table](/tables/orders.md).
+
+# Steps
+1. Check the [ingestion job dashboard](https://example.com/dash).
+2. …</code></pre>
+            <figcaption class="diagram-caption">
+              実体を持たない抽象概念（プレイブック）の例。resource
+              は省略し、本文で手順を構造的に記述します。
+            </figcaption>
+          </figure>
+        </section>
+
+        <section>
+          <h2>バンドル・index.md・段階的開示</h2>
+          <p>
+            ファイル群のまとまりを<strong>バンドル（bundle）</strong>と呼びます。バンドルは
+            Markdown
+            ファイルのディレクトリツリーで、ディレクトリ構造はドメインに依存しません。生産側は、対象のナレッジに合うように自由に概念を整理します。
+          </p>
+          <p>
+            どのディレクトリにも（バンドルのルートを含む）<code>index.md</code>
+            を置けます。これは<strong
+              >段階的開示（progressive disclosure）</strong
+            >を支える仕組みで、個別の文件を開く前に「そのディレクトリに何があるか」を人間やエージェントに示します。<code
+              >index.md</code
+            >
+            自体は frontmatter
+            を持たず、本文で概念をグループ化して列挙します。生産側が自動生成してもよいですし、存在しない場合は消費側がその場で合成しても構いません。
+          </p>
+          <figure class="diagram-card">
+            <svg
+              viewBox="0 0 900 250"
+              role="img"
+              aria-label="OKFバンドルのディレクトリ構造とindex.md"
+            >
+              <rect
+                x="20"
+                y="20"
+                width="240"
+                height="210"
+                rx="18"
+                fill="#fafaf9"
+                stroke="#57534e"
+                stroke-width="2"
+              />
+              <text
+                x="140"
+                y="50"
+                text-anchor="middle"
+                font-size="18"
+                font-weight="700"
+                fill="#1c1917"
+              >
+                bundle/
+              </text>
+              <text x="40" y="82" font-size="15" fill="#44403c">
+                ├ index.md (root)
+              </text>
+              <text x="40" y="106" font-size="15" fill="#44403c">
+                ├ tables/
+              </text>
+              <text x="40" y="128" font-size="15" fill="#57534e">
+                │ ├ index.md
+              </text>
+              <text x="40" y="150" font-size="15" fill="#2563eb">
+                │ ├ orders.md
+              </text>
+              <text x="40" y="172" font-size="15" fill="#2563eb">
+                │ └ customers.md
+              </text>
+              <text x="40" y="196" font-size="15" fill="#44403c">
+                └ playbooks/
+              </text>
+              <text x="40" y="218" font-size="15" fill="#7c3aed">
+                └ freshness.md
+              </text>
+
+              <path
+                d="M260 125 H375"
+                stroke="#9ca3af"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <polygon points="375,125 357,115 357,135" fill="#9ca3af" />
+              <text
+                x="317"
+                y="112"
+                text-anchor="middle"
+                font-size="14"
+                fill="#57534e"
+              >
+                index.md
+              </text>
+
+              <rect
+                x="375"
+                y="45"
+                width="220"
+                height="160"
+                rx="18"
+                fill="#fff7ed"
+                stroke="#c2410c"
+                stroke-width="2"
+              />
+              <text
+                x="485"
+                y="78"
+                text-anchor="middle"
+                font-size="18"
+                font-weight="700"
+                fill="#9a3412"
+              >
+                一覧を提示
+              </text>
+              <text
+                x="485"
+                y="108"
+                text-anchor="middle"
+                font-size="15"
+                fill="#7c2d12"
+              >
+                何があるか先に見せる
+              </text>
+              <text
+                x="485"
+                y="140"
+                text-anchor="middle"
+                font-size="15"
+                fill="#7c2d12"
+              >
+                （progressive
+              </text>
+              <text
+                x="485"
+                y="162"
+                text-anchor="middle"
+                font-size="15"
+                fill="#7c2d12"
+              >
+                disclosure）
+              </text>
+              <text
+                x="485"
+                y="192"
+                text-anchor="middle"
+                font-size="14"
+                fill="#9a3412"
+              >
+                frontmatter なし
+              </text>
+
+              <path
+                d="M595 125 H710"
+                stroke="#9ca3af"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <polygon points="710,125 692,115 692,135" fill="#9ca3af" />
+
+              <rect
+                x="710"
+                y="45"
+                width="170"
+                height="160"
+                rx="18"
+                fill="#eff6ff"
+                stroke="#2563eb"
+                stroke-width="2"
+              />
+              <text
+                x="795"
+                y="82"
+                text-anchor="middle"
+                font-size="18"
+                font-weight="700"
+                fill="#1d4ed8"
+              >
+                個別の概念
+              </text>
+              <text
+                x="795"
+                y="116"
+                text-anchor="middle"
+                font-size="15"
+                fill="#1e40af"
+              >
+                orders.md
+              </text>
+              <text
+                x="795"
+                y="140"
+                text-anchor="middle"
+                font-size="15"
+                fill="#1e40af"
+              >
+                customers.md
+              </text>
+              <text
+                x="795"
+                y="174"
+                text-anchor="middle"
+                font-size="14"
+                fill="#1d4ed8"
+              >
+                必要なものだけ開く
+              </text>
+            </svg>
+            <figcaption class="diagram-caption">
+              index.md
+              がディレクトリの中身を一覧示し、エージェントや人が個別文件を開く前に全体を把握できるようにします。これが段階的開示です。
+            </figcaption>
+          </figure>
+        </section>
+
+        <section>
+          <h2>リンクと相互運用性</h2>
+          <p>
+            概念同士は標準の Markdown
+            リンクで結びます。2つの形式がサポートされており、<strong
+              ><code>/</code> 始まりの絶対（バンドル相対）リンク</strong
+            >が推奨です。文件をディレクトリ内で移動してもリンクが壊れにくいためです。通常の相対パスも使えます。
+          </p>
+          <p>
+            OKF は、既存のナレッジ表現と明確に住み分けています。同じ Markdown +
+            frontmatter
+            の系譜でありながら「<strong>仕様化されている</strong>」ことが差です。
+          </p>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <h3>野良 LLM-wiki</h3>
+              <p>
+                Markdown + frontmatter
+                の慣習は普及中だが、現場ごとに互換性がない。
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>Obsidian / Notion</h3>
+              <p>
+                階層 Markdown
+                と相互リンクの個人ツールだが、交換向けの固定規則はない。
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>OKF</h3>
+              <p>
+                同じ系譜でありつつ、相互運用に必要な最小の規則を仕様として明文化。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>どういう場面で有効か</h2>
+          <ul>
+            <li>
+              組織をまたいでナレッジを交換し、複数の異なるエージェント/プラットフォームで同じナレッジを読ませたいとき。
+            </li>
+            <li>
+              データ資産（テーブル、データセット、API）周辺のメタデータ・文脈・キュレーションされた知見を、人間とエージェントの両方で共有したいとき。
+            </li>
+            <li>
+              エージェントが自ら生成・追記できるナレッジベースを、SDK
+              や専属ツールに縛られず運用したいとき。
+            </li>
+            <li>
+              引用（Citations）を含め、主張の出どころを辿れる形で知識を蓄積したいとき。
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>注意点</h2>
+          <ul>
+            <li>
+              現行は
+              <strong>Version 0.1 Draft</strong>であり、仕様は今後変わりうる
+              Draft 段階です。
+            </li>
+            <li>
+              <strong>Google Cloud が発表した</strong
+              >ものの、フォーマット自体はクラウド非依存のベンダーニュートラルな仕様です。発表文脈はデータ共有と
+              BigQuery 周りですが、Google Cloud 固有ではありません。
+            </li>
+            <li>
+              <code>type</code>
+              値は中央登録されません。生産側は分かりやすい値を選び、消費側は未知の
+              type を一般的な概念として扱います。
+            </li>
+            <li>
+              バンドルは対象とする OKF バージョンを、ルートの
+              <code>index.md</code> の frontmatter に
+              <code>okf_version: "0.1"</code>
+              として宣言できます。未対応のバージョンでも、消費側はベストエフォートで読むことが推奨されます。
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>まとめ</h2>
+          <p>
+            Open Knowledge Format は、AI エージェント時代のナレッジを「Markdown
+            + YAML frontmatter
+            のディレクトリ」という極めて平易な形で標準化する試みです。cat
+            で読めて git clone
+            で配れる簡潔さと、最小限の規則による相互運用性を両立します。LLM-wiki
+            パターンを仕様化した点が核心で、特定ベンダーやツールに縛られず、人間とエージェントの双方が作り・交換し・読める知識の共通言語となることを目指しています。
+          </p>
+        </section>
+
+        <section>
+          <h2>参考URL</h2>
+          <ul>
+            <li>
+              <a
+                href="https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing/"
+                >Introducing the Open Knowledge Format — Google Cloud
+                Blog（一次情報・公式発表）</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md"
+                >Open Knowledge Format (OKF) SPEC.md —
+                GitHub（一次情報・仕様書）</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.searchenginejournal.com/google-cloud-announces-the-open-knowledge-format/579253/"
+                >Google Cloud Announces The Open Knowledge Format — Search
+                Engine Journal</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.heise.de/en/news/Open-Knowledge-Format-AI-Knowledge-as-Markdown-Files-11332310.html"
+                >Open Knowledge Format: AI Knowledge as Markdown Files — heise
+                online</a
+              >
+            </li>
+          </ul>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
