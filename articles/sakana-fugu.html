@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sakana Fuguとは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / マルチエージェントAPI</p>
+      <h1>Sakana Fuguとは何か</h1>
+      <p class="article-date">作成日: 2026年6月23日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>Sakana Fugu は、複数の大規模言語モデルを裏側で切り替えながら使う、Sakana AI の OpenAI 互換 API 製品です。</li>
+          <li>単一モデルを直接呼ぶのではなく、コーディネーターが複数モデルに役割を割り振る設計で、複雑な推論やコーディングを強みにしています。</li>
+          <li>2026年6月23日時点では <code>fugu</code> と <code>fugu-ultra</code> が公開され、Responses API、Chat Completions API、Models API に対応しています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何か</h2>
+        <p>Sakana Fugu は、「マルチエージェントシステムを一つのモデルAPIとして使う」という位置付けの製品です。利用者から見ると OpenAI 互換 API ですが、内部では単一の基盤モデルが常に答えるのではなく、タスクに応じて複数のモデルを選び分け、役割分担させながら回答を組み立てます。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 260" role="img" aria-label="Sakana Fuguの全体像">
+            <rect x="20" y="90" width="170" height="84" rx="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="128" text-anchor="middle" font-size="24" font-weight="700" fill="#9a3412">利用者</text>
+            <text x="105" y="154" text-anchor="middle" font-size="18" fill="#7c2d12">OpenAI互換API</text>
+
+            <path d="M190 132 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,132 242,122 242,142" fill="#9ca3af"/>
+
+            <rect x="260" y="60" width="220" height="144" rx="24" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="370" y="102" text-anchor="middle" font-size="28" font-weight="700" fill="#1d4ed8">Fugu</text>
+            <text x="370" y="132" text-anchor="middle" font-size="18" fill="#1e40af">Coordinator</text>
+            <text x="370" y="158" text-anchor="middle" font-size="18" fill="#1e40af">task routing</text>
+            <text x="370" y="184" text-anchor="middle" font-size="18" fill="#1e40af">role assignment</text>
+
+            <path d="M480 132 H548" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="548,132 530,122 530,142" fill="#9ca3af"/>
+
+            <rect x="548" y="28" width="160" height="72" rx="18" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="628" y="70" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">Thinker</text>
+
+            <rect x="548" y="112" width="160" height="72" rx="18" fill="#ecfccb" stroke="#65a30d" stroke-width="2"/>
+            <text x="628" y="154" text-anchor="middle" font-size="20" font-weight="700" fill="#3f6212">Worker</text>
+
+            <rect x="548" y="196" width="160" height="40" rx="18" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+            <text x="628" y="221" text-anchor="middle" font-size="20" font-weight="700" fill="#9d174d">Verifier</text>
+
+            <path d="M708 132 H780" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="780,132 762,122 762,142" fill="#9ca3af"/>
+
+            <rect x="780" y="90" width="120" height="84" rx="22" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="840" y="128" text-anchor="middle" font-size="22" font-weight="700" fill="#0f766e">最終回答</text>
+            <text x="840" y="154" text-anchor="middle" font-size="18" fill="#115e59">1つに統合</text>
+          </svg>
+          <figcaption class="diagram-caption">利用者は1本のAPIを呼びますが、内部ではコーディネーターが複数モデルに役割を振り、結果をまとめます。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>どう動くか</h2>
+        <p>製品ページによると、Fugu の基盤研究は ICLR 2026 論文の <code>TRINITY</code> と <code>Conductor</code> です。TRINITY は軽量コーディネーターが複数ターンで LLM を選び、Thinker、Worker、Verifier の3役を割り当てる枠組みです。Conductor は強化学習で、どのモデルに何をさせ、どの出力を誰に見せるかまで自然言語で学習する方式です。</p>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>TRINITY</h3>
+            <p>軽量コーディネーターが、役割と担当モデルを複数ターンで決める設計です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>Conductor</h3>
+            <p>自然言語の指示と通信経路そのものを、強化学習で最適化する設計です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>製品化</h3>
+            <p>利用者には単一APIとして見せつつ、内部ではモデル切替と協調を自動化します。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>何が強みか</h2>
+        <ul>
+          <li>単一ベンダー依存を避けつつ、タスクごとに得意なモデルへ振り分けられます。</li>
+          <li>製品ページでは、コーディング、推論、科学系タスク、エージェント型タスクを主要な適用先として前面に出しています。</li>
+          <li>特定プロバイダーやモデルをプールから除外できるため、データ、プライバシー、コンプライアンス要件に合わせやすい設計です。</li>
+        </ul>
+        <div class="compare-box">
+          <p>重要なのは、「最強の単一モデルを作る」のではなく、「複数モデルの組み合わせ方を学習して性能を上げる」方向に賭けている点です。Sakana AI の会社名や研究方針とも整合しています。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>公開されているモデル</h2>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 220" role="img" aria-label="FuguとFugu Ultraの違い">
+            <rect x="40" y="34" width="380" height="152" rx="26" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="230" y="78" text-anchor="middle" font-size="30" font-weight="700" fill="#1d4ed8">Fugu</text>
+            <text x="230" y="114" text-anchor="middle" font-size="20" fill="#1e40af">標準モデル</text>
+            <text x="230" y="142" text-anchor="middle" font-size="18" fill="#1e40af">性能と低レイテンシの両立</text>
+            <text x="230" y="168" text-anchor="middle" font-size="18" fill="#1e40af">日常利用向け</text>
+
+            <rect x="500" y="34" width="380" height="152" rx="26" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="690" y="78" text-anchor="middle" font-size="30" font-weight="700" fill="#9a3412">Fugu Ultra</text>
+            <text x="690" y="114" text-anchor="middle" font-size="20" fill="#7c2d12">高性能モデル</text>
+            <text x="690" y="142" text-anchor="middle" font-size="18" fill="#7c2d12">より深いエージェント連携</text>
+            <text x="690" y="168" text-anchor="middle" font-size="18" fill="#7c2d12">高難度タスク向け</text>
+          </svg>
+          <figcaption class="diagram-caption">Fugu は標準系、Fugu Ultra は品質最優先系です。API 形は共通です。</figcaption>
+        </figure>
+        <ul>
+          <li><code>fugu</code>: 日常的なコーディング、コードレビュー、チャットボットのような低レイテンシ用途向けです。</li>
+          <li><code>fugu-ultra</code>: Kaggle、論文再現、サイバーセキュリティ分析、文献・特許調査のような高難度用途向けです。</li>
+          <li><code>fugu-ultra-20260615</code>: 特定バージョンを固定する dated alias として公開されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>APIとしての使い方</h2>
+        <p>Console のモデルページでは、Fugu は OpenAI 互換 API として案内されています。2026年6月23日時点で対応が明記されているのは <code>/v1/responses</code>、<code>/v1/chat/completions</code>、<code>/v1/models</code> です。生成系は Responses API 推奨です。</p>
+        <ul>
+          <li><code>model</code> に <code>fugu</code> か <code>fugu-ultra</code> を指定する</li>
+          <li>OpenAI SDK の <code>base_url</code> を Fugu 側エンドポイントへ向ける</li>
+          <li>Responses API では built-in tool として <code>web_search</code> も使える</li>
+          <li><code>previous_response_id</code> は非対応で、会話履歴は <code>input</code> に直接渡す</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>性能はどう見ればよいか</h2>
+        <p>製品ページには、SWE Bench Pro、TerminalBench 2.1、LiveCodeBench、Humanity’s Last Exam、GPQA-D などの比較値が掲載されています。ただし、ベースライン側には「モデル提供元公表値」を使っている項目があり、完全な第三者比較ではありません。したがって、数字は「Sakana AI がどう見せているか」の材料として読むのが妥当です。</p>
+        <ul>
+          <li>Fugu Ultra の公開値は SWE Bench Pro 73.7、TerminalBench 2.1 82.1、LiveCodeBench 93.2 です。</li>
+          <li>Fugu も TerminalBench 2.1 80.2、LiveCodeBench 92.9 と高めで、標準モデルでもかなり攻めた位置付けです。</li>
+          <li>定性的な例として、AutoResearch、古典かな文書の読み順推定、ルービックキューブソルバー、CAD 生成などが掲載されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>価格と制約</h2>
+        <ul>
+          <li>2026年6月23日時点の Pricing ページでは、<code>fugu-ultra-20260615</code> の従量課金が 100万トークンあたり入力 <code>$5</code>、出力 <code>$30</code>、272K超文脈では入力 <code>$10</code>、出力 <code>$45</code> と案内されています。</li>
+          <li>Fugu の従量課金は「利用した underlying model のトップティア価格を1回だけ課金」と説明されており、複数エージェントを呼んでも単純積み上げにはしない方針です。</li>
+          <li>製品ページには、GDPR 等への対応中のため EU・EEA 域内では未提供と明記されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>向いているケース</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>向いている</h3>
+            <p>複数モデルの選定や役割分担を自前実装したくないが、単一モデル以上の伸びを狙いたい用途です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>特に相性が良い</h3>
+            <p>コード生成、コードレビュー、複雑な推論、長めの調査、エージェント型ワークフローです。</p>
+          </div>
+          <div class="mini-card">
+            <h3>注意</h3>
+            <p>ベンチマークの見栄えだけで決めず、実タスクでレイテンシ、安定性、料金を見て判断した方がよいです。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>Sakana Fugu は、「モデルそのもの」より「モデル群の指揮系」を製品化した API です。OpenAI 互換で入りやすい一方、中身はマルチエージェントの学習済みオーケストレーションに寄っています。単一モデルの乗り換え先というより、複雑タスクで自前のエージェント設計コストを下げつつ性能を取りにいく選択肢として見ると理解しやすいです。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://sakana.ai/fugu/">Sakana Fugu product page</a></li>
+          <li><a href="https://console.sakana.ai/models">Sakana AI Console - Models</a></li>
+          <li><a href="https://console.sakana.ai/pricing">Sakana AI Console - Pricing</a></li>
+          <li><a href="https://arxiv.org/abs/2512.04695">TRINITY: An Evolved LLM Coordinator</a></li>
+          <li><a href="https://arxiv.org/abs/2512.04388">Learning to Orchestrate Agents in Natural Language with the Conductor</a></li>
+          <li><a href="https://github.com/SakanaAI/fugu/blob/main/Fugu_technical_report.pdf">Fugu technical report</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
