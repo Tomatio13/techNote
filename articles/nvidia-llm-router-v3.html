@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NVIDIA LLM Router v3について</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / ルーティング</p>
+      <h1>NVIDIA LLM Router v3について</h1>
+      <p class="article-date">作成日: 2026年6月23日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>GitHub の <code>v3</code> ブランチには、NVIDIA LLM Router v3 が「prefill complexity-based routing」として明記されています。</li>
+          <li>v3 は、軽量 encoder の hidden states を使って各モデルの正答確率を予測し、精度しきい値を満たす中で最も安いモデルを選ぶ方式です。</li>
+          <li>v1 の BERT 分類、v2 の intent / multimodal routing と違い、v3 は text-only の複雑度推定と cost-quality 最適化に寄っています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>結論</h2>
+        <div class="note-box">
+          <p>NVIDIA LLM Router v3 はあります。2026年6月23日時点で GitHub の <code>v3</code> ブランチに公開されており、README では「Complexity-Based Optimization」を掲げる reference implementation として説明されています。</p>
+        </div>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 220" role="img" aria-label="LLM Router v1 v2 v3 の違い">
+            <rect x="20" y="58" width="260" height="104" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="150" y="96" text-anchor="middle" font-size="26" font-weight="700" fill="#1d4ed8">v1</text>
+            <text x="150" y="126" text-anchor="middle" font-size="18" fill="#1e3a8a">BERT分類</text>
+            <text x="150" y="150" text-anchor="middle" font-size="18" fill="#1e3a8a">Rust proxy + Triton</text>
+
+            <rect x="330" y="46" width="260" height="128" rx="22" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="460" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="#a16207">v2</text>
+            <text x="460" y="114" text-anchor="middle" font-size="18" fill="#854d0e">intent / multimodal</text>
+            <text x="460" y="138" text-anchor="middle" font-size="18" fill="#854d0e">FastAPI</text>
+            <text x="460" y="162" text-anchor="middle" font-size="18" fill="#854d0e">分類中心</text>
+
+            <rect x="640" y="34" width="260" height="152" rx="22" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="770" y="72" text-anchor="middle" font-size="26" font-weight="700" fill="#0f766e">v3</text>
+            <text x="770" y="102" text-anchor="middle" font-size="18" fill="#115e59">prefill routing</text>
+            <text x="770" y="126" text-anchor="middle" font-size="18" fill="#115e59">hidden states → PCA → MLP</text>
+            <text x="770" y="150" text-anchor="middle" font-size="18" fill="#115e59">routing + inference</text>
+          </svg>
+          <figcaption class="diagram-caption">v3 は「intent を当てるルーター」より、「質問の複雑度から最適コスト帯を選ぶルーター」と見ると分かりやすいです。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>v3は何か</h2>
+        <p>LLM は Large Language Model、つまり大規模言語モデルです。v3 ブランチの README では、Model Router が「どのモデルがどの種類の質問をうまく処理できるか」を学習し、精度条件を満たす範囲で最も効率のよいモデルへ各リクエストを送る仕組みとして説明されています。README の見出しは「LLM Router v3 — Complexity-Based Optimization」です。</p>
+        <ul>
+          <li>大きい frontier model を全部の問い合わせに使うと高コストです。</li>
+          <li>小さい model だけに寄せると難問で精度が落ちます。</li>
+          <li>v3 は質問ごとの複雑さの信号を抽出して、中間帯を含む model pool から最適な送信先を選びます。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>どう動くか</h2>
+        <p>README では、training、inference、selection の 3 段階で説明されています。要点は「routing のために毎回すべての候補 model を叩かない」ことです。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 260" role="img" aria-label="LLM Router v3 の基本フロー">
+            <rect x="20" y="90" width="150" height="80" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="95" y="136" text-anchor="middle" font-size="22" font-weight="700" fill="#9a3412">質問</text>
+
+            <path d="M170 130 H260" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="260,130 242,120 242,140" fill="#9ca3af"/>
+
+            <rect x="260" y="72" width="180" height="116" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="350" y="108" text-anchor="middle" font-size="22" font-weight="700" fill="#1d4ed8">Encoder</text>
+            <text x="350" y="136" text-anchor="middle" font-size="16" fill="#1e3a8a">Qwen3.5-0.8B</text>
+            <text x="350" y="160" text-anchor="middle" font-size="16" fill="#1e3a8a">hidden states</text>
+
+            <path d="M440 130 H530" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="530,130 512,120 512,140" fill="#9ca3af"/>
+
+            <rect x="530" y="72" width="180" height="116" rx="22" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="620" y="108" text-anchor="middle" font-size="22" font-weight="700" fill="#a16207">PCA + MLP</text>
+            <text x="620" y="136" text-anchor="middle" font-size="16" fill="#854d0e">P(correct)</text>
+            <text x="620" y="160" text-anchor="middle" font-size="16" fill="#854d0e">per model</text>
+
+            <path d="M710 130 H800" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="800,130 782,120 782,140" fill="#9ca3af"/>
+
+            <rect x="800" y="48" width="100" height="164" rx="22" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="850" y="82" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">選択</text>
+            <text x="850" y="112" text-anchor="middle" font-size="15" fill="#115e59">threshold</text>
+            <text x="850" y="136" text-anchor="middle" font-size="15" fill="#115e59">を超える</text>
+            <text x="850" y="160" text-anchor="middle" font-size="15" fill="#115e59">最安モデル</text>
+            <text x="850" y="184" text-anchor="middle" font-size="15" fill="#115e59">を選ぶ</text>
+          </svg>
+          <figcaption class="diagram-caption">質問を 1 回 encoder に通し、その内部表現から各 model の正答確率を予測して選びます。</figcaption>
+        </figure>
+        <ul>
+          <li>学習時は、複数モデルを同じ質問群で走らせて正誤を集めます。</li>
+          <li>推論時は、軽量 encoder を 1 回だけ実行します。</li>
+          <li>選択時は、最良 model からの許容差 <code>tolerance</code> を使って threshold を作り、その threshold を超える中で最も安い model を選びます。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>toleranceの意味</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>0.0</h3>
+            <p>コスト無視で、予測精度が最も高い model を選びます。</p>
+          </div>
+          <div class="mini-card">
+            <h3>0.20</h3>
+            <p>既定値です。少し精度を譲って、より安い model を許容します。</p>
+          </div>
+          <div class="mini-card">
+            <h3>1.0</h3>
+            <p>最小 model を常に選ぶ方向へ寄ります。</p>
+          </div>
+        </div>
+        <div class="compare-box">
+          <p>README の例では、最高確率が 0.97 のときに <code>tolerance = 0.20</code> を置くと threshold は 0.77 になり、その threshold を超えた候補のうち最安モデルが選ばれます。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>v3の構成</h2>
+        <ul>
+          <li><strong>Core Routing Engine</strong>: <code>PrefillRouter</code> が encoder、hidden states、MLP、selection を束ねます。</li>
+          <li><strong>Training Pipeline</strong>: <code>collect</code>、<code>train</code>、<code>evaluate</code> の CLI が用意されています。</li>
+          <li><strong>Serving Layer</strong>: standalone server、router-only sidecar、LiteLLM integration を持ちます。</li>
+          <li><strong>Config / Checkpoint</strong>: YAML で model pool を定義し、`.pt` checkpoint を読みます。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>何が新しいか</h2>
+        <ul>
+          <li>v1 は BERT 分類と Rust proxy が中心でした。</li>
+          <li>v2 は intent-based routing と multimodal が中心でした。</li>
+          <li>v3 は prefill hidden states を routing signal に使い、9 models、最大 500x のコスト差を扱う cost optimization へ寄っています。</li>
+          <li>v3 は proxying も残っていて、README では「Yes (routing + inference)」と整理されています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>使い方の入口</h2>
+        <ol>
+          <li>Python 3.10+ と Git LFS を入れる。</li>
+          <li>clone 後に <code>git lfs install</code> と <code>git lfs pull</code> を実行する。</li>
+          <li><code>checkpoints/</code> の学習済み checkpoint と <code>configs/</code> の YAML を使って router を作る。</li>
+          <li>必要に応じて library、standalone server、sidecar、LiteLLM proxy で使い分ける。</li>
+        </ol>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 180" role="img" aria-label="LLM Router v3 の導入ルート">
+            <rect x="20" y="54" width="170" height="72" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="98" text-anchor="middle" font-size="20" font-weight="700" fill="#9a3412">Git LFS</text>
+
+            <path d="M190 90 H270" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="270,90 252,80 252,100" fill="#9ca3af"/>
+
+            <rect x="270" y="54" width="180" height="72" rx="20" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="360" y="98" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">checkpoint</text>
+
+            <path d="M450 90 H530" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="530,90 512,80 512,100" fill="#9ca3af"/>
+
+            <rect x="530" y="54" width="180" height="72" rx="20" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="620" y="98" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">route()</text>
+
+            <path d="M710 90 H790" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="790,90 772,80 772,100" fill="#9ca3af"/>
+
+            <rect x="790" y="40" width="110" height="100" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="845" y="78" text-anchor="middle" font-size="18" font-weight="700" fill="#0f766e">server</text>
+            <text x="845" y="104" text-anchor="middle" font-size="16" fill="#115e59">sidecar</text>
+          </svg>
+          <figcaption class="diagram-caption">まず local routing を動かし、そのあと server か sidecar に広げる流れが自然です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>どこで使うと効くか</h2>
+        <ul>
+          <li>単一の高価な model に全部流していて、コストを落としたいとき。</li>
+          <li>既存推論基盤は残しつつ、routing だけ sidecar として差し込みたいとき。</li>
+          <li>OpenAI 互換 endpoint を維持しながら、裏側の model 選択を自動化したいとき。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>注意点</h2>
+        <ul>
+          <li>README 自体が「Reference implementation only」と書いており、そのまま production 完成品として扱う位置付けではありません。</li>
+          <li>routing 精度は checkpoint と学習データに依存します。</li>
+          <li>multimodal ではなく text-only です。画像 routing が必要なら v2 系の文脈を別で見る必要があります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>NVIDIA LLM Router v3 は、v3 ブランチで公開されている prefill ベースの complexity router です。小型 encoder の内部表現から各 model の正答確率を予測し、許容精度内で最安の model を選ぶのが中心思想です。v1 の分類 proxy、v2 の intent / multimodal router とは狙いがかなり違い、v3 は cost-quality optimization を強く意識した設計です。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/NVIDIA-AI-Blueprints/llm-router/tree/v3">GitHub: NVIDIA-AI-Blueprints/llm-router v3</a></li>
+          <li><a href="https://github.com/NVIDIA-AI-Blueprints/llm-router/tree/experimental">GitHub: NVIDIA-AI-Blueprints/llm-router experimental</a></li>
+          <li><a href="https://github.com/NVIDIA-AI-Blueprints/llm-router/tree/main">GitHub: NVIDIA-AI-Blueprints/llm-router main</a></li>
+          <li><a href="https://build.nvidia.com/nvidia/llm-router">NVIDIA Build: LLM Router Blueprint</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
