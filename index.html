@@ -71,6 +71,21 @@
           </p>
         </div>
         <div class="article-list">
+          <a class="article-card" href="articles/litellm-router.html">
+            <p class="card-meta-row">
+              <time class="article-date" datetime="2026-06-23"
+                >2026年6月23日</time
+              >
+              <span class="eyebrow">AI / ルーティング</span>
+            </p>
+            <h3>LiteLLMのRouter機能について</h3>
+            <p>
+              load balancing、Auto Routing、Complexity Router、Adaptive
+              Router、Fallbacks の役割分担を、公式 docs ベースで整理します。
+            </p>
+            <span class="meta">LiteLLM Proxy · cost / reliability</span>
+          </a>
+
           <a class="article-card" href="articles/nvidia-llm-router-v3.html">
             <p class="card-meta-row">
               <time class="article-date" datetime="2026-06-23"
@@ -214,6 +229,17 @@
           <h2 id="ai-heading">モデル、ツール、運用</h2>
         </div>
         <div class="article-row-list">
+          <a class="article-row" href="articles/litellm-router.html">
+            <div class="article-row-main">
+              <span class="article-row-title">LiteLLMのRouter機能について</span>
+              <p class="article-row-desc">
+                load balancing、Auto Routing、Complexity Router、Adaptive
+                Router、Fallbacks の違いと使い分けを整理します。
+              </p>
+            </div>
+            <span class="article-row-meta">AI / ルーティング</span>
+          </a>
+
           <a class="article-row" href="articles/nvidia-llm-router-v3.html">
             <div class="article-row-main">
               <span class="article-row-title">NVIDIA LLM Router v3について</span>
@@ -266,8 +292,8 @@
             <div class="article-row-main">
               <span class="article-row-title">FFFとは何か</span>
               <p class="article-row-desc">
-                AI エージェント向けの file search / grep を、毎回の process
-                起動なしで速く回すための検索基盤として整理します。
+                MCP 対応の検索基盤として、Rust 製常駐検索の価値と
+                agent 開発での使いどころを整理します。
               </p>
             </div>
             <span class="article-row-meta">AI / 検索基盤</span>
@@ -277,8 +303,8 @@
             <div class="article-row-main">
               <span class="article-row-title">CodeGraphとは何か</span>
               <p class="article-row-desc">
-                コード探索で grep と file read を減らすための、ローカル索引、MCP
-                ツール、auto-sync の仕組みを整理します。
+                ローカルに索引したコード構造を、MCP 経由で探索可能にする
+                code graph の利点と前提条件を整理します。
               </p>
             </div>
             <span class="article-row-meta">AI / コード探索</span>
@@ -288,7 +314,8 @@
             <div class="article-row-main">
               <span class="article-row-title">graphifyとは何か</span>
               <p class="article-row-desc">
-                どんな入力を扱い、何を出力し、どのコマンドを起点に使うとよいかを、ローカル環境の実体ベースで整理します。
+                任意入力を知識グラフとして蓄積し、HTML や JSON
+                に落とす仕組みと運用上の注意を整理します。
               </p>
             </div>
             <span class="article-row-meta">AI / ナレッジグラフ</span>
@@ -296,37 +323,28 @@
         </div>
       </section>
 
-      <section
-        class="domain-section"
-        id="infra"
-        aria-labelledby="infra-heading"
-      >
+      <section class="domain-section" id="infra" aria-labelledby="infra-heading">
         <div class="domain-heading">
           <p class="eyebrow">インフラ</p>
-          <h2 id="infra-heading">認証、クラウド、公開運用</h2>
+          <h2 id="infra-heading">クラウド、認証、配信</h2>
         </div>
         <div class="empty-state">
           <p>インフラカテゴリの記事は未作成です。</p>
         </div>
       </section>
 
-      <section
-        class="domain-section"
-        id="devtools"
-        aria-labelledby="devtools-heading"
-      >
+      <section class="domain-section" id="devtools" aria-labelledby="devtools-heading">
         <div class="domain-heading">
           <p class="eyebrow">開発環境</p>
-          <h2 id="devtools-heading">CLI、TUI、ローカル作業環境</h2>
+          <h2 id="devtools-heading">CLI、TUI、日々の道具</h2>
         </div>
         <div class="article-row-list">
           <a class="article-row" href="articles/elio.html">
             <div class="article-row-main">
               <span class="article-row-title">elioとは何か</span>
               <p class="article-row-desc">
-                プレビュー重視の terminal file manager
-                として、3ペイン構成、画像表示、Trash、shell integration
-                の実体を整理します。
+                terminal file manager としての操作感、画像表示、Trash
+                対応の意味を整理します。
               </p>
             </div>
             <span class="article-row-meta">開発環境 / TUI</span>

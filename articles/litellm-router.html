@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LiteLLMのRouter機能について</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / ルーティング</p>
+      <h1>LiteLLMのRouter機能について</h1>
+      <p class="article-date">作成日: 2026年6月23日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li>質問の「Routet」は LiteLLM の <code>Router</code> を指す前提で整理します。</li>
+          <li>LiteLLM の router は 1 つの機能ではなく、基本の load balancing、semantic auto routing、complexity routing、adaptive routing、fallback を含む系統です。</li>
+          <li>まず使うべき土台は通常の <code>Router</code> で、内容ベース振り分けが必要なときだけ auto / complexity / adaptive を追加するのが自然です。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>結論</h2>
+        <div class="note-box">
+          <p>LiteLLM の Router 機能は、単なる「複数 API に round-robin する機能」ではありません。2026年6月23日時点の公式 docs では、可用性のための load balancing と fallback を土台にして、内容ベースの Auto Routing、ルールベースの Complexity Router、学習型の Adaptive Router まで用意されています。</p>
+        </div>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 280" role="img" aria-label="LiteLLM Router 機能の全体像">
+            <rect x="325" y="24" width="270" height="72" rx="24" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="460" y="67" text-anchor="middle" font-size="28" font-weight="700" fill="#9a3412">LiteLLM Router</text>
+
+            <path d="M460 96 V132" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+
+            <rect x="24" y="150" width="160" height="92" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="104" y="186" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">Load Balancing</text>
+            <text x="104" y="212" text-anchor="middle" font-size="16" fill="#1e3a8a">同一 alias 内で</text>
+            <text x="104" y="234" text-anchor="middle" font-size="16" fill="#1e3a8a">配分と再試行</text>
+
+            <rect x="202" y="150" width="160" height="92" rx="22" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+            <text x="282" y="186" text-anchor="middle" font-size="20" font-weight="700" fill="#a16207">Fallbacks</text>
+            <text x="282" y="212" text-anchor="middle" font-size="16" fill="#854d0e">失敗時に</text>
+            <text x="282" y="234" text-anchor="middle" font-size="16" fill="#854d0e">別 model へ退避</text>
+
+            <rect x="380" y="150" width="160" height="92" rx="22" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+            <text x="460" y="186" text-anchor="middle" font-size="20" font-weight="700" fill="#0e7490">Auto Routing</text>
+            <text x="460" y="212" text-anchor="middle" font-size="16" fill="#155e75">embedding 類似度で</text>
+            <text x="460" y="234" text-anchor="middle" font-size="16" fill="#155e75">intent 振り分け</text>
+
+            <rect x="558" y="150" width="160" height="92" rx="22" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="638" y="186" text-anchor="middle" font-size="19" font-weight="700" fill="#0f766e">Complexity</text>
+            <text x="638" y="212" text-anchor="middle" font-size="16" fill="#115e59">ルールベースで</text>
+            <text x="638" y="234" text-anchor="middle" font-size="16" fill="#115e59">難度別に分岐</text>
+
+            <rect x="736" y="150" width="160" height="92" rx="22" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+            <text x="816" y="186" text-anchor="middle" font-size="20" font-weight="700" fill="#6d28d9">Adaptive</text>
+            <text x="816" y="212" text-anchor="middle" font-size="16" fill="#5b21b6">実績学習で</text>
+            <text x="816" y="234" text-anchor="middle" font-size="16" fill="#5b21b6">cost と quality 調整</text>
+          </svg>
+          <figcaption class="diagram-caption">LiteLLM の Router は、可用性系の機能と最適化系の機能をまとめて抱える入口です。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>基本のRouterは何をするか</h2>
+        <p>LiteLLM の基本 Router は、同じ <code>model_name</code> に複数 deployment をぶら下げて、どれに送るかを選ぶ層です。OpenAI と Azure OpenAI、あるいは複数リージョンの Azure deployment を 1 つの alias にまとめて扱えます。</p>
+        <ul>
+          <li>同一 alias 内で load balancing します。</li>
+          <li>失敗時は retries、timeouts、cooldowns を組み合わせて別 deployment に逃がせます。</li>
+          <li>SDK でも Proxy Server でも使えます。</li>
+          <li>routing strategy は <code>simple-shuffle</code> が既定かつ production 推奨です。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Auto Routingとは</h2>
+        <p>Auto Routing は semantic routing です。入力メッセージの embedding を作り、route ごとに用意した utterance 群との類似度で、どの model へ送るかを決めます。</p>
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 220" role="img" aria-label="Auto Routing の流れ">
+            <rect x="20" y="78" width="170" height="70" rx="20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+            <text x="105" y="120" text-anchor="middle" font-size="22" font-weight="700" fill="#9a3412">入力メッセージ</text>
+
+            <path d="M190 113 H290" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="290,113 272,103 272,123" fill="#9ca3af"/>
+
+            <rect x="290" y="54" width="180" height="118" rx="22" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+            <text x="380" y="92" text-anchor="middle" font-size="22" font-weight="700" fill="#0e7490">Embedding</text>
+            <text x="380" y="120" text-anchor="middle" font-size="16" fill="#155e75">utterance 群と</text>
+            <text x="380" y="144" text-anchor="middle" font-size="16" fill="#155e75">類似度比較</text>
+
+            <path d="M470 113 H570" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="570,113 552,103 552,123" fill="#9ca3af"/>
+
+            <rect x="570" y="54" width="150" height="118" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="645" y="92" text-anchor="middle" font-size="22" font-weight="700" fill="#1d4ed8">最大 score</text>
+            <text x="645" y="120" text-anchor="middle" font-size="16" fill="#1e3a8a">threshold</text>
+            <text x="645" y="144" text-anchor="middle" font-size="16" fill="#1e3a8a">超過を確認</text>
+
+            <path d="M720 113 H820" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="820,113 802,103 802,123" fill="#9ca3af"/>
+
+            <rect x="820" y="66" width="80" height="94" rx="20" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+            <text x="860" y="104" text-anchor="middle" font-size="18" font-weight="700" fill="#0f766e">対象</text>
+            <text x="860" y="130" text-anchor="middle" font-size="18" fill="#115e59">model</text>
+          </svg>
+          <figcaption class="diagram-caption">route の順番ではなく、全 route を横断した最大類似度で選ばれるのがポイントです。</figcaption>
+        </figure>
+        <ul>
+          <li>embedding model が別途必要です。</li>
+          <li><code>router.json</code> に utterance、description、score_threshold を定義します。</li>
+          <li>意図別の振り分けに向きます。例: coding は Claude、要約は GPT、のような分岐です。</li>
+          <li>embedding 呼び出しぶんの追加レイテンシと追加コストがあります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Complexity Routerとは</h2>
+        <p>Complexity Router は semantic routing の別案です。embedding API を呼ばず、ルールベースのスコアリングで「簡単」「中程度」「複雑」「reasoning」を見積もって tier ごとの model に送ります。</p>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>速い</h3>
+            <p>docs では sub-millisecond latency とされています。</p>
+          </div>
+          <div class="mini-card">
+            <h3>安い</h3>
+            <p>routing のための追加 API call が不要です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>向き先</h3>
+            <p>intent 分類より cost optimization 寄りです。</p>
+          </div>
+        </div>
+        <ul>
+          <li>token 数、code presence、reasoning markers、technical terms など 7 次元でスコアします。</li>
+          <li>reasoning marker を 2 個以上検出すると、重み付き合計を待たずに REASONING tier に送る特例があります。</li>
+          <li>簡単な問い合わせを安い model に逃がしたいときに向いています。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Adaptive Routerとは</h2>
+        <p>Adaptive Router は beta 機能です。cheap model と expensive model のどちらを出すべきかを、過去の満足シグナルと request type ごとの実績から学習します。</p>
+        <ul>
+          <li>LiteLLM Proxy と Postgres が必要です。</li>
+          <li>request type は code_generation、technical_design、factual_lookup など 7 分類です。</li>
+          <li><code>weights.quality</code> と <code>weights.cost</code> で、品質優先かコスト優先かを調整します。</li>
+          <li>起動初期は宣言した <code>quality_tier</code> に頼り、十分なサンプルがたまると実績主導へ寄ります。</li>
+        </ul>
+        <div class="compare-box">
+          <p>Auto Routing が「事前に route を設計する」方式なのに対し、Adaptive Router は「運用しながら学ぶ」方式です。運用の重さは増えますが、固定ルールのチューニング作業は減らせます。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>FallbackとBudget Routingの位置付け</h2>
+        <p>Router を production で使うなら、model selection より先に reliability を押さえる必要があります。LiteLLM docs では fallbacks と budget routing が別ページで整理されています。</p>
+        <ul>
+          <li>Fallbacks は <code>model_name</code> 単位で次の候補へ順番に退避します。</li>
+          <li><code>content_policy_fallbacks</code>、<code>context_window_fallbacks</code>、通常の <code>fallbacks</code> を分けて持てます。</li>
+          <li>Budget Routing は provider ごとの spend を見て、予算超過した provider を routing 対象から外します。</li>
+          <li>Budget Routing は Redis 前提です。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>どれを選ぶべきか</h2>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>まず導入</h3>
+            <p>基本 Router + fallbacks。最初の production 入口です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>意図別分岐</h3>
+            <p>Auto Routing。route 設計を明示したいときです。</p>
+          </div>
+          <div class="mini-card">
+            <h3>コスト最適化</h3>
+            <p>Complexity Router。まず安く速く試せます。</p>
+          </div>
+        </div>
+        <ul>
+          <li>運用品質を上げたいだけなら、Auto Routing より前に fallback、timeout、cooldown を整えるべきです。</li>
+          <li>入力内容に応じて専門モデルへ振りたいなら Auto Routing です。</li>
+          <li>難問だけ高価な model へ寄せたいなら Complexity Router が始めやすいです。</li>
+          <li>実トラフィックの学習で自動最適化したいなら Adaptive Router ですが、beta と Postgres 前提を受け入れる必要があります。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>LiteLLM の Router 機能は、可用性のための gateway 機能と、品質対コストの最適化機能が重なった集合です。最初の土台は基本 Router と fallback で、その上に intent 重視なら Auto Routing、コスト重視なら Complexity Router、継続学習まで欲しければ Adaptive Router を足す、という順番で考えると整理しやすいです。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://docs.litellm.ai/docs/routing">LiteLLM Docs: Router - Load Balancing</a></li>
+          <li><a href="https://docs.litellm.ai/docs/proxy/auto_routing">LiteLLM Docs: Auto Routing</a></li>
+          <li><a href="https://docs.litellm.ai/docs/adaptive_router">LiteLLM Docs: Adaptive Router</a></li>
+          <li><a href="https://docs.litellm.ai/docs/proxy/reliability">LiteLLM Docs: Fallbacks</a></li>
+          <li><a href="https://docs.litellm.ai/docs/proxy/provider_budget_routing">LiteLLM Docs: Budget Routing</a></li>
+          <li><a href="https://docs.litellm.ai/">LiteLLM Docs: Getting Started</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
