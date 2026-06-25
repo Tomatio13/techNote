@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChromeのBuilt-in AI「Prompt API」とは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">Web / ブラウザAI</p>
+      <h1>ChromeのBuilt-in AI「Prompt API」とは何か</h1>
+      <p class="article-date">作成日: 2026年6月26日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li><strong>ローカルAI実行:</strong> ユーザーのデバイス上に搭載された軽量LLM（Gemini Nano等）をブラウザ側で直接動かす標準Web APIです。</li>
+          <li><strong>4つの強み:</strong> サーバー通信を挟まないため、「超低遅延」「強固なプライバシー」「オフライン対応」「ゼロトークン料金（無料）」を実現します。</li>
+          <li><strong>標準化プロセス:</strong> WebML CG（Web Machine Learning Community Group）にて標準化が進んでおり、JavaScriptから <code>ai.languageModel</code> などのインターフェースを通じて呼び出せます。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>従来型とBuilt-in AI（Prompt API）の構成比較</h2>
+        <p>従来の生成AI対応Webアプリでは、開発者がサーバーサイドにAPIキーを置き、ブラウザからの要求をクラウド上の巨大LLMに中継していました。これに対し、Prompt API（Built-in AI）ではブラウザ自体がLLMを内蔵し、ユーザーのローカルマシン上で直接処理を行います。</p>
+        
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 340" role="img" aria-label="従来構成とPrompt API構成の比較">
+            <!-- 背景グリッド・仕切り -->
+            <line x1="460" y1="20" x2="460" y2="320" stroke="#d6d0c7" stroke-width="2" stroke-dasharray="6,6"/>
+            
+            <!-- 左側: 従来の構成 -->
+            <text x="230" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#374151">従来のクラウド型構成</text>
+            
+            <!-- ブラウザ -->
+            <rect x="50" y="60" width="150" height="60" rx="12" fill="#fff" stroke="#9ca3af" stroke-width="2"/>
+            <text x="125" y="95" text-anchor="middle" font-size="16" fill="#1f2937">Webブラウザ</text>
+            
+            <!-- 矢印 -->
+            <path d="M200 90 H260" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="260,90 248,83 248,97" fill="#ef4444"/>
+            <text x="230" y="75" text-anchor="middle" font-size="12" fill="#ef4444" font-weight="bold">API通信 (有料)</text>
+            
+            <!-- クラウドサーバー / APIゲートウェイ -->
+            <rect x="260" y="60" width="150" height="60" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="335" y="95" text-anchor="middle" font-size="15" fill="#1e40af">開発者サーバー</text>
+            
+            <!-- 矢印 -->
+            <path d="M335 120 V160" stroke="#2563eb" stroke-width="2" stroke-dasharray="4,4"/>
+            
+            <!-- クラウドLLM -->
+            <rect x="260" y="160" width="150" height="60" rx="12" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+            <text x="335" y="195" text-anchor="middle" font-size="16" font-weight="bold" fill="#991b1b">クラウドLLM</text>
+            <text x="335" y="212" text-anchor="middle" font-size="11" fill="#991b1b">Gemini 1.5 Pro / GPT-4 等</text>
+
+            <!-- 課題リスト -->
+            <rect x="40" y="240" width="380" height="75" rx="12" fill="#fef2f2" stroke="#fee2e2" stroke-width="1"/>
+            <text x="55" y="262" font-size="12" fill="#991b1b">● ネットワーク遅延が発生する</text>
+            <text x="55" y="282" font-size="12" fill="#991b1b">● トークン数に応じた従量課金コスト</text>
+            <text x="55" y="302" font-size="12" fill="#991b1b">● 機密データを外部（クラウド）に送信する必要がある</text>
+
+            <!-- 右側: Built-in AIの構成 -->
+            <text x="690" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">Built-in AI (Prompt API) 構成</text>
+            
+            <!-- ブラウザ本体 -->
+            <rect x="510" y="60" width="360" height="160" rx="20" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+            <text x="690" y="85" text-anchor="middle" font-size="16" font-weight="bold" fill="#115e59">ローカルブラウザ (Chrome等)</text>
+            
+            <!-- アプリケーション -->
+            <rect x="530" y="110" width="140" height="80" rx="12" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>
+            <text x="600" y="145" text-anchor="middle" font-size="15" fill="#115e59">Webアプリ</text>
+            <text x="600" y="165" text-anchor="middle" font-size="12" fill="#0f766e">JavaScript実行</text>
+            
+            <!-- ローカル連携矢印 -->
+            <path d="M670 150 H710" stroke="#0d9488" stroke-width="3"/>
+            <polygon points="710,150 700,144 700,156" fill="#0d9488"/>
+            <text x="690" y="138" text-anchor="middle" font-size="11" fill="#0f766e" font-weight="bold">ローカルAPI</text>
+            
+            <!-- Gemini Nano -->
+            <rect x="710" y="110" width="140" height="80" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="780" y="145" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e40af">Gemini Nano</text>
+            <text x="780" y="165" text-anchor="middle" font-size="12" fill="#1e40af">ローカル実行モデル</text>
+
+            <!-- 利点リスト -->
+            <rect x="500" y="240" width="380" height="75" rx="12" fill="#f0fdf4" stroke="#dcfce7" stroke-width="1"/>
+            <text x="515" y="262" font-size="12" fill="#166534">✔ 通信なし：超低遅延＆オフライン動作</text>
+            <text x="515" y="282" font-size="12" fill="#166534">✔ コストなし：無償でLLM推論が可能</text>
+            <text x="515" y="302" font-size="12" fill="#166534">✔ プライバシー：個人情報や社外秘データも漏洩しない</text>
+          </svg>
+          <figcaption class="diagram-caption">ローカルブラウザ内でモデルを実行するため、通信とコストを完全にカットできます。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>メリットとデメリット（制約事項）</h2>
+        <p>ブラウザローカルで動作する Prompt API は革新的ですが、万能ではありません。採用にあたっては、その特性を正しく理解し、適材適所で使い分ける必要があります。</p>
+        
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>4つのメリット</h3>
+            <p><strong>超低遅延:</strong> ネットワーク通信が発生しないため、ミリ秒単位で応答を開始できます。</p>
+            <p><strong>コストゼロ:</strong> ユーザーデバイスの資源を利用するため、開発者のクラウドAPI利用料は不要です。</p>
+          </div>
+          <div class="mini-card">
+            <h3>プライバシーとオフライン</h3>
+            <p><strong>データ保護:</strong> 全データが端末から出ないため、機密情報を安全に処理できます。</p>
+            <p><strong>完全オフライン:</strong> 山奥や飛行機内など、ネット接続がない環境でも動作します。</p>
+          </div>
+          <div class="mini-card">
+            <h3>主なデメリット・課題</h3>
+            <p><strong>推論能力の限界:</strong> 数十億パラメータ規模のGemini Nanoを使用するため、クラウドの超巨大LLMと比べて複雑な推論は苦手です。</p>
+            <p><strong>モデル準備:</strong> 初回起動時に数GBのモデルの自動ダウンロードが発生します。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>JavaScriptでの基本的な使い方</h2>
+        <p>WICGで定義されている <code>LanguageModel</code> (旧 <code>ai.assistant</code>) インターフェースを使用します。まずはブラウザが利用可能かチェックし、セッションを生成してプロンプトを送るという流れになります。</p>
+        
+        <h3>1. 基本的なテキスト生成の例</h3>
+        <pre><code class="language-javascript">// 1. 利用可能かチェック
+const capabilities = await ai.languageModel.capabilities();
+if (capabilities.available === 'no') {
+  console.log("Built-in AIは利用できません");
+  return;
+}
+
+// 2. セッションを作成する（システムプロンプトや温度も指定可能）
+const session = await ai.languageModel.create({
+  systemPrompt: "あなたは優秀なエンジニアリングアシスタントです。",
+  temperature: 0.7
+});
+
+// 3. プロンプトを投げて回答を取得
+const result = await session.prompt("Prompt APIについて1文で説明して");
+console.log(result); // 「Prompt APIは、ブラウザ側でAIを実行する標準APIです...」
+
+// 4. 不要になったらセッションを破棄
+session.destroy();
+</code></pre>
+
+        <h3>2. ストリーミング応答の例</h3>
+        <p>応答を少しずつレンダリングしたい場合は、非同期イテレータを返す <code>promptStreaming</code> を使用します。これにより、待ち時間をさらに削減できます。</p>
+        <pre><code class="language-javascript">const stream = session.promptStreaming("量子コンピュータの仕組みを初心者向けに解説して");
+
+for await (const chunk of stream) {
+  // 生成されたテキストが逐次追加された文字列として渡される
+  document.getElementById("output").textContent = chunk;
+}
+</code></pre>
+      </section>
+
+      <section>
+        <h2>試すためのChrome設定方法</h2>
+        <p>2026年現在、一部のブラウザバージョンではデフォルトで有効化されていますが、開発者が実験的に動作させるには以下の設定が必要な場合があります。</p>
+        <div class="note-box">
+          <p><strong>動作手順:</strong></p>
+          <ol>
+            <li>ChromeのURLバーに <code>chrome://flags</code> と入力する</li>
+            <li><strong>Enables optimization guide on device</strong> を検索し、<strong>Enabled</strong> に設定する</li>
+            <li><strong>Prompt API for Gemini Nano</strong>（または <strong>Enables Prompt API</strong>）を検索し、<strong>Enabled</strong> に設定する</li>
+            <li>Chromeを再起動する</li>
+            <li><code>chrome://components</code> にアクセスし、<strong>Optimization Guide On Device Model</strong> の「アップデートを確認」をクリックし、モデル（Gemini Nano）のダウンロードを完了させる（1〜2GB程度あり、ダウンロードが完了するまでAPIのステータスは <code>after-download</code> などになります）</li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>Prompt APIは、従来クラウドで行っていたAI推論の「ローカル化」を促進し、Webアプリケーションの設計を大きく変える可能性を秘めています。高度な推論にはクラウドモデル（Gemini 1.5 Pro等）を使い、スマートなUI装飾や文章校正、オフラインサポートなどにはローカルのPrompt APIを使うといった、<strong>ハイブリッド構成</strong>がこれからの標準になるでしょう。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://github.com/webmachinelearning/prompt-api" target="_blank" rel="noopener">GitHub - webmachinelearning/prompt-api (WICG Explainer)</a></li>
+          <li><a href="https://developer.chrome.com/docs/ai/built-in-ai" target="_blank" rel="noopener">Chrome Built-in AI Documentation</a></li>
+          <li><a href="https://chromestatus.com/feature/5176161474248704" target="_blank" rel="noopener">Chrome Status - Prompt API</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
