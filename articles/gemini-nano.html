@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>デバイス上で動く軽量LLM「Gemini Nano」とは何か</title>
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article-page">
+    <a class="back-link" href="../index.html">← 一覧へ戻る</a>
+
+    <article class="article-shell">
+      <p class="eyebrow">AI / デバイスLLM</p>
+      <h1>デバイス上で動く軽量LLM「Gemini Nano」とは何か</h1>
+      <p class="article-date">作成日: 2026年6月27日</p>
+
+      <section>
+        <h2>要点</h2>
+        <ul>
+          <li><strong>オンデバイス専用モデル:</strong> クラウドにデータを送信せず、スマートフォンやPCなどユーザー端末のローカル上で動作する、Googleの最も効率的な軽量LLMです。</li>
+          <li><strong>4-bit量子化によるメモリ削減:</strong> パラメータ数は 1.8B（Nano-1）および 3.25B（Nano-2）の2つの構成があり、4-bit量子化によって少ないメモリ容量（RAM）でも快適に動くよう設計されています。</li>
+          <li><strong>1.5 Nanoによるマルチモーダル対応:</strong> Pixel 9シリーズなどに搭載される「Gemini 1.5 Nano」からは、テキストだけでなく、画像や音声、話し言葉といったマルチモーダルな情報をローカル環境で直接処理できるよう進化しました。</li>
+          <li><strong>OSとブラウザへの統合:</strong> Android OS上のシステムサービス「AICore」や、Google Chromeブラウザの「Built-in AI」を介して提供され、アプリ開発者はSDKや標準JavaScript APIから簡単に呼び出せます。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Gemini Nano の実行プラットフォーム構造（Android vs Chrome）</h2>
+        <p>Gemini Nanoは、スタンドアロンのアプリとして動くのではなく、プラットフォーム（OSやブラウザ）が共通サービスとして管理・実行する仕組みをとっています。これにより、複数のアプリが同一のローカルモデルを共有し、端末内のディスクスペースやメモリ消費を大幅に節約できます。</p>
+
+        <figure class="diagram-card">
+          <svg viewBox="0 0 920 380" role="img" aria-label="Android AICoreとChrome Built-in AIの実行レイヤー比較">
+            <!-- 背景グリッド・仕切り -->
+            <line x1="460" y1="20" x2="460" y2="360" stroke="#d6d0c7" stroke-width="2" stroke-dasharray="6,6"/>
+
+            <!-- 左側: Android (AICore) 実行フロー -->
+            <text x="230" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#1e3a8a">Android (AICore) 構成</text>
+            
+            <!-- アプリ -->
+            <rect x="50" y="60" width="360" height="60" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+            <text x="230" y="95" text-anchor="middle" font-size="15" font-weight="bold" fill="#1e40af">Androidアプリ (Google AI Edge SDK 等)</text>
+            
+            <!-- 矢印 -->
+            <path d="M230 120 V150" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="230,150 224,140 236,140" fill="#3b82f6"/>
+            
+            <!-- AICore (システムサービス) -->
+            <rect x="50" y="150" width="360" height="80" rx="12" fill="#fff" stroke="#1e3a8a" stroke-width="2"/>
+            <text x="230" y="180" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e3a8a">AICore (Android システムサービス)</text>
+            <text x="230" y="200" text-anchor="middle" font-size="12" fill="#475569">Private Compute Core (PCC) 準拠（データ保護）</text>
+            <text x="230" y="218" text-anchor="middle" font-size="11" fill="#475569">モデル管理・安全性フィルタリング</text>
+
+            <!-- 矢印 -->
+            <path d="M230 230 V260" stroke="#1e3a8a" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="230,260 224,250 236,250" fill="#1e3a8a"/>
+
+            <!-- ハードウェア＆モデル -->
+            <rect x="50" y="260" width="360" height="60" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+            <text x="230" y="295" text-anchor="middle" font-size="15" font-weight="bold" fill="#334155">Gemini Nano (1.0 / 1.5)</text>
+            <text x="230" y="312" text-anchor="middle" font-size="11" fill="#64748b">Tensor G3 / G4 NPU で高速化実行</text>
+
+
+            <!-- 右側: Chrome (Built-in AI) 実行フロー -->
+            <text x="690" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">Google Chrome 構成</text>
+            
+            <!-- Webアプリ -->
+            <rect x="510" y="60" width="360" height="60" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+            <text x="690" y="95" text-anchor="middle" font-size="15" font-weight="bold" fill="#115e59">Webアプリ (JavaScript)</text>
+            
+            <!-- 矢印 -->
+            <path d="M690 120 V150" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="690,150 684,140 696,140" fill="#0d9488"/>
+            
+            <!-- Chrome / Prompt API -->
+            <rect x="510" y="150" width="360" height="80" rx="12" fill="#fff" stroke="#0f766e" stroke-width="2"/>
+            <text x="690" y="180" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f766e">Chrome Browser (Prompt API 等)</text>
+            <text x="690" y="200" text-anchor="middle" font-size="12" fill="#475569">ai.languageModel などの標準Web API</text>
+            <text x="690" y="218" text-anchor="middle" font-size="11" fill="#475569">Optimization Guide を通じた自動モデル配布</text>
+
+            <!-- 矢印 -->
+            <path d="M690 230 V260" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="690,260 684,250 696,250" fill="#0f766e"/>
+
+            <!-- ハードウェア＆モデル -->
+            <rect x="510" y="260" width="360" height="60" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+            <text x="690" y="295" text-anchor="middle" font-size="15" font-weight="bold" fill="#334155">Gemini Nano (2B〜4B)</text>
+            <text x="690" y="312" text-anchor="middle" font-size="11" fill="#64748b">ローカル GPU / CPU での推論実行</text>
+          </svg>
+          <figcaption class="diagram-caption">AndroidではOS組み込みの「AICore」がモデルを管理し、Chromeブラウザ上ではブラウザ自身がモデルライフサイクルと実行を制御します。</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>Gemini Nano の技術的特徴</h2>
+        <p>Gemini Nanoは、クラウドで動く「Gemini Pro」や「Gemini Ultra」などの超大規模モデルから知識を凝縮する（蒸留：Knowledge Distillation）手法を用いて構築されています。小さな筐体でも高度な判断能力を持つため、いくつかの工夫が施されています。</p>
+        
+        <div class="mini-grid">
+          <div class="mini-card">
+            <h3>パラメータ数と展開</h3>
+            <p><strong>1.8B (Nano-1)</strong> と <strong>3.25B (Nano-2)</strong> の2つのサイズがあり、実行環境（主に利用可能なRAM容量）に応じて出し分けられます。Pixel 9シリーズでは3.25BのGemini Nano v2が標準採用されています。</p>
+          </div>
+          <div class="mini-card">
+            <h3>4-bit量子化 (INT4)</h3>
+            <p>モデルのパラメータ（重み情報）を4ビットの整数値に圧縮。これにより、モデル全体のサイズを1〜2GB程度まで軽量化し、起動に必要なメモリ容量と推論エネルギーを最小限に抑えています。</p>
+          </div>
+          <div class="mini-card">
+            <h3>NPU/TPUへの最適化</h3>
+            <p>Google Tensorや各社SoCのNPU（Neural Processing Unit）の命令セットに合わせてコンパイルされており、CPUや一般的なメモリだけで実行するよりはるかに高速かつ省電力で動作します。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Gemini 1.0 Nano から 1.5 Nano への進化</h2>
+        <p>Pixel 8シリーズでのGemini 1.0 Nanoの採用から、Pixel 9シリーズのGemini 1.5 Nanoへの移行により、オンデバイスAIの実用性は爆発的に向上しました。</p>
+        
+        <div class="compare-box">
+          <p><strong>主な進化ポイント：</strong></p>
+          <ul>
+            <li><strong>マルチモーダルの完全対応:</strong> テキストのみしか理解できなかった1.0に対し、1.5 Nanoでは画像、音声、話し言葉といった複数の入力を一度に、しかもデバイス内のみで分析可能になりました。</li>
+            <li><strong>コンテキストウィンドウの拡張:</strong> より長い文脈や複数のドキュメントをオンデバイスで一括して読み込めるようになり、要約や情報抽出の精度が大きく向上しました。</li>
+            <li><strong>Pixelの独自AI機能との統合:</strong> 
+              <ul>
+                <li>「Pixel Screenshots」でのスクリーンショット画像内の自動分類・テキスト検索。</li>
+                <li>「Call Notes」での通話音声の要約。</li>
+                <li>「Recorder (ボイスレコーダー)」での高精度な文字起こしおよび段落ごとの要約生成。</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>開発者がGemini Nanoを活用する方法</h2>
+        <p>開発者がこのオンデバイスAIを活用する方法は、主に以下の2種類に大別されます。</p>
+        
+        <h3>1. Webアプリケーション（Google Chrome）</h3>
+        <p>Chromeの「Built-in AI（Prompt API）」などの実験的Web APIを使用します。ユーザーが手動でモデルを準備する必要がなく、以下のような短いJavaScriptコードで利用可能です。</p>
+        <pre><code class="language-javascript">// 言語モデルのセッションを作成して実行
+const session = await ai.languageModel.create();
+const reply = await session.prompt("Gemini Nanoの利点を簡潔に教えてください。");
+console.log(reply);</code></pre>
+        <p>※詳細な手順やコードの書き方は、姉妹記事の <a href="prompt-api.html">ChromeのBuilt-in AI「Prompt API」とは何か</a> を参照してください。</p>
+
+        <h3>2. ネイティブAndroidアプリ</h3>
+        <p>Googleが提供する <strong>Google AI Edge SDK</strong>（旧 Google AI Client SDK）または <strong>ML Kit GenAI APIs</strong> を利用します。Android OSの「AICore」に処理をオフロードすることで、自前で数GBものモデルファイルをアプリパッケージ（APK）に同梱する必要がなくなり、容量制限をクリアできます。</p>
+        <p>また、AICoreはAndroidの「Private Compute Core（PCC）」の一部として動作するため、処理データは完全に暗号化されて他のアプリケーションやクラウドから隔離され、強固なプライバシーが担保されます。</p>
+      </section>
+
+      <section>
+        <h2>まとめ</h2>
+        <p>Gemini Nanoは、「全ての処理をクラウドで実行する」というこれまでの生成AIトレンドから一歩踏み出し、プライバシー保護、オフライン対応、そして運用コストの撤廃という決定的な価値を開発者とユーザーに提供します。</p>
+        <p>高度な推論を求める用途にはクラウドの「Gemini 1.5 Pro / Flash」を呼び出し、日常的かつ低遅延、高プライバシーが求められるテキスト校正やローカル要約には「Gemini Nano」を活用するという<strong>ハイブリッド設計（Cloud-Device Hybrid AI）</strong>が、今後のアプリケーション開発におけるベストプラクティスとなっていくでしょう。</p>
+      </section>
+
+      <section>
+        <h2>参考URL</h2>
+        <ul>
+          <li><a href="https://deepmind.google/technologies/gemini/" target="_blank" rel="noopener">Google DeepMind - Gemini Models</a></li>
+          <li><a href="https://developer.android.com/ai/aicore" target="_blank" rel="noopener">Android Developers - AICore</a></li>
+          <li><a href="https://developer.chrome.com/docs/ai/built-in-ai" target="_blank" rel="noopener">Chrome Developers - Built-in AI</a></li>
+          <li><a href="https://blog.google/products/pixel/google-pixel-9-ai-tensor-g4/" target="_blank" rel="noopener">Google Blog - Pixel 9 hardware and Gemini Nano with Multimodality</a></li>
+        </ul>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
